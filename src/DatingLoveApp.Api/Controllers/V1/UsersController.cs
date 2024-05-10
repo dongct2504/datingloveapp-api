@@ -38,4 +38,38 @@ public class UsersController : ApiController
 
         return Ok(result.Value);
     }
+
+    [HttpPut]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Update(Guid id, [FromForm] UpdateLocalUserDto request)
+    {
+        if (id != request.LocalUserId)
+        {
+            return Problem(statusCode: StatusCodes.Status400BadRequest, detail: "Id not match.");
+        }
+
+        Result result = await _userService.UpdateAsync(request);
+        if (result.IsFailed)
+        {
+            return Problem(result.Errors);
+        }
+
+        return NoContent();
+    }
+
+    [HttpDelete("{id:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Remove(Guid id)
+    {
+        Result result = await _userService.RemoveAsync(id);
+        if (result.IsFailed)
+        {
+            return Problem(result.Errors);
+        }
+
+        return NoContent();
+    }
 }

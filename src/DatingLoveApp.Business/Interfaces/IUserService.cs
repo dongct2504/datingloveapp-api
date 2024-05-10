@@ -10,9 +10,7 @@ public interface IUserService
 
     Task<Result<LocalUserDto>> GetByIdAsync(Guid id);
 
-    Task<Result<LocalUserDto>> AddAsync(LocalUserDto userDto);
+    Task<Result> UpdateAsync(UpdateLocalUserDto userDto);
 
-    Task<Result> UpdateAsync(Guid id, CreateLocalUserDto userDto);
-
-    Task<Result> RemoveAsync(UpdateLocalUserDto userDto);
+    Task<Result> RemoveAsync(Guid id);
 }

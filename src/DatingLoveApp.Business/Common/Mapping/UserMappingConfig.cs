@@ -9,5 +9,7 @@ public class UserMappingConfig : IRegister
     public void Register(TypeAdapterConfig config)
     {
         config.NewConfig<LocalUser, LocalUserDto>();
+
+        config.NewConfig<UpdateLocalUserDto, LocalUser>();
     }
 }

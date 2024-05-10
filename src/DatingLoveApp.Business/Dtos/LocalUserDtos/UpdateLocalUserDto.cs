@@ -1,7 +1,11 @@
-﻿namespace DatingLoveApp.Business.Dtos.LocalUserDtos;
+﻿using Microsoft.AspNetCore.Http;
+
+namespace DatingLoveApp.Business.Dtos.LocalUserDtos;
 
 public class UpdateLocalUserDto
 {
+    public Guid LocalUserId { get; set; }
+
     public string? FirstName { get; set; }
 
     public string? LastName { get; set; }
@@ -14,8 +18,6 @@ public class UpdateLocalUserDto
 
     public string PhoneNumber { get; set; } = null!;
 
-    public string? ImageUrl { get; set; }
-
     public string? Address { get; set; }
 
     public string? Ward { get; set; }
@@ -23,4 +25,8 @@ public class UpdateLocalUserDto
     public string? District { get; set; }
 
     public string? City { get; set; }
+
+    public string? Role { get; set; }
+
+    public IFormFile? ImageFile { get; set; }
 }

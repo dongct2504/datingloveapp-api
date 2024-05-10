@@ -15,11 +15,13 @@ namespace DatingLoveApp.Business.Services;
 public class UserService : IUserService
 {
     private readonly IUserRepository _userRepository;
+    private readonly IFileStorageService _fileStorageService;
     private readonly IMapper _mapper;
 
-    public UserService(IUserRepository userRepository, IMapper mapper)
+    public UserService(IUserRepository userRepository, IFileStorageService fileStorageService, IMapper mapper)
     {
         _userRepository = userRepository;
+        _fileStorageService = fileStorageService;
         _mapper = mapper;
     }
 
@@ -60,18 +62,51 @@ public class UserService : IUserService
         return _mapper.Map<LocalUserDto>(user);
     }
 
-    public Task<Result<LocalUserDto>> AddAsync(LocalUserDto userDto)
+    public async Task<Result> UpdateAsync(UpdateLocalUserDto userDto)
     {
-        throw new NotImplementedException();
+        LocalUser? user = await _userRepository.GetAsync(userDto.LocalUserId);
+        if (user == null)
+        {
+            string message = "User not found.";
+            Log.Warning($"{nameof(GetByIdAsync)} - {message} - {typeof(UserService)}");
+            return Result.Fail(new NotFoundError(message));
+        }
+
+        _mapper.Map(userDto, user);
+
+        if (userDto.ImageFile != null)
+        {
+            await _fileStorageService.RemoveImageAsync(user.ImageUrl);
+
+            string image = await _fileStorageService.UploadImageAsync(userDto.ImageFile, UploadPath.UserImageUploadPath);
+            user.ImageUrl = UploadPath.UserImageUploadPath + image;
+        }
+
+        user.CreatedAt = DateTime.Now;
+        user.UpdatedAt = DateTime.Now;
+
+        await _userRepository.UpdateAsync(user);
+
+        return Result.Ok();
     }
 
-    public Task<Result> UpdateAsync(Guid id, CreateLocalUserDto userDto)
+    public async Task<Result> RemoveAsync(Guid id)
     {
-        throw new NotImplementedException();
-    }
+        LocalUser? user = await _userRepository.GetAsync(id);
+        if (user == null)
+        {
+            string message = "User not found.";
+            Log.Warning($"{nameof(GetByIdAsync)} - {message} - {typeof(UserService)}");
+            return Result.Fail(new NotFoundError(message));
+        }
 
-    public Task<Result> RemoveAsync(UpdateLocalUserDto userDto)
-    {
-        throw new NotImplementedException();
+        await _userRepository.RemoveAsync(user);
+
+        if (user.ImageUrl != null)
+        {
+            await _fileStorageService.RemoveImageAsync(user.ImageUrl);
+        }
+
+        return Result.Ok();
     }
 }

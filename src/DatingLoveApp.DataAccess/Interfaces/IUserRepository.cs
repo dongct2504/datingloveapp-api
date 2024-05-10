@@ -4,5 +4,5 @@ namespace DatingLoveApp.DataAccess.Interfaces;
 
 public interface IUserRepository : IRepository<LocalUser>
 {
-    Task Update(LocalUser localUser);
+    Task UpdateAsync(LocalUser localUser);
 }
