@@ -1,0 +1,24 @@
+version: '3.4'
+
+services:
+  datingloveapp.api:
+    image: ${DOCKER_REGISTRY-}datingloveappapi
+    build:
+      context: .
+      dockerfile: src/DatingLoveApp.Api/Dockerfile
+    container_name: datingloveapp.api
+    ports:
+      - 5000:5000
+      - 5001:5001
+
+  datingloveapp.db:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    container_name: datingloveapp.db
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=secret_password_123
+      - MSSQL_PID=Express
+    volumes:
+      - ./.containers/datingloveapp-db:/var/opt/mssql/data
+    ports:
+      - 1433:1433   
