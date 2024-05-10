@@ -363,4 +363,4 @@ MigrationBackup/
 FodyWeavers.xsd
 
 # docker db data
-.containers
+.containers/
