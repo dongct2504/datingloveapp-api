@@ -8,10 +8,10 @@ public class UpdateLocalUserDtoValidator : AbstractValidator<UpdateLocalUserDto>
     public UpdateLocalUserDtoValidator()
     {
         RuleFor(x => x.LocalUserId)
-            .Empty();
+            .NotEmpty();
 
         RuleFor(x => x.UserName)
-            .Empty();
+            .NotEmpty();
 
         RuleFor(x => x.Email)
             .NotEmpty()

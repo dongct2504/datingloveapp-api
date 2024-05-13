@@ -26,8 +26,4 @@
     <ProjectReference Include="..\DatingLoveApp.DataAccess\DatingLoveApp.DataAccess.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="wwwroot\users\images\" />
-  </ItemGroup>
-
 </Project>

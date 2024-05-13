@@ -2,8 +2,8 @@ namespace DatingLoveApp.Business.Common.Constants;
 
 public static class UploadPath
 {
-    public const string UserImageUploadPath = "/wwwroot/users/images/";
-    public const string UserExcelUploadPath = "/wwwroot/users/excel/";
-    public const string UserWordUploadPath = "/wwwroot/users/word/";
-    public const string UserPdfUploadPath = "/wwwroot/users/pdf/";
+    public const string UserImageUploadPath = "/users/images/";
+    public const string UserExcelUploadPath = "/users/excel/";
+    public const string UserWordUploadPath = "/users/word/";
+    public const string UserPdfUploadPath = "/users/pdf/";
 }
