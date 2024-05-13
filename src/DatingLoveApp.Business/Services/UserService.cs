@@ -101,10 +101,7 @@ public class UserService : IUserService
 
         await _userRepository.RemoveAsync(user);
 
-        if (user.ImageUrl != null)
-        {
-            await _fileStorageService.RemoveImageAsync(user.ImageUrl);
-        }
+        await _fileStorageService.RemoveImageAsync(user.ImageUrl);
 
         return Result.Ok();
     }

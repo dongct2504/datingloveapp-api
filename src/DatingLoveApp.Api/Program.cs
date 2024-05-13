@@ -121,8 +121,7 @@ var app = builder.Build();
 
     app.UseCors(policy => policy.AllowAnyHeader()
         .AllowAnyMethod()
-        .WithOrigins()
-        .WithOrigins("http://localhost:4200", "http://192.168.2.11:4200"));
+        .WithOrigins("http://localhost:4200"));
 
     app.UseAuthentication();
     app.UseAuthorization();
