@@ -13,6 +13,6 @@ public interface IRepository<T> where T : class
     Task<T?> GetAsync(Guid id);
     Task<T?> GetAsync(QueryOptions<T> options);
 
-    Task<T> AddAsync(T entity);
+    Task AddAsync(T entity);
     Task RemoveAsync(T entity);
 }

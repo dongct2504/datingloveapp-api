@@ -1,10 +1,12 @@
-﻿namespace DatingLoveApp.Business.Dtos.LocalUserDtos;
+﻿namespace DatingLoveApp.Business.Dtos.AuthenticationDtos;
 
-public class CreateLocalUserDto
+public class RegisterLocalUserDto
 {
     public string UserName { get; set; } = null!;
 
     public string Email { get; set; } = null!;
+
+    public string PhoneNumber { get; set; } = null!;
 
     public string Password { get; set; } = null!;
 

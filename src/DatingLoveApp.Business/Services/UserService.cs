@@ -82,7 +82,6 @@ public class UserService : IUserService
             user.ImageUrl = UploadPath.UserImageUploadPath + image;
         }
 
-        user.CreatedAt = DateTime.Now;
         user.UpdatedAt = DateTime.Now;
 
         await _userRepository.UpdateAsync(user);

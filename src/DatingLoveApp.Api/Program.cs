@@ -31,6 +31,30 @@ var builder = WebApplication.CreateBuilder(args);
             Title = "DatingLoveApp API V2",
             Version = "v2"
         });
+
+        swaggerGenOptions.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+        {
+            Description = "JWT authorization header using Bearer Scheme",
+            Name = "Authorization",
+            In = ParameterLocation.Header,
+            Type = SecuritySchemeType.ApiKey,
+            Scheme = "Bearer"
+        });
+
+        swaggerGenOptions.AddSecurityRequirement(new OpenApiSecurityRequirement
+        {
+            {
+                new OpenApiSecurityScheme
+                {
+                    Reference = new OpenApiReference
+                    {
+                        Type = ReferenceType.SecurityScheme,
+                        Id = "Bearer"
+                    }
+                },
+                Array.Empty<string>()
+            }
+        });
     });
 
     // register serilog
@@ -52,23 +76,26 @@ var builder = WebApplication.CreateBuilder(args);
     builder.Services.AddDbContext<DatingLoveAppDbContext>(options =>
         options.UseSqlServer(sqlConnectionStringBuilder.ConnectionString));
 
+    // register dependencies in other players
+    builder.Services.AddSingleton<IFileStorageService, FileStorageService>();
+    builder.Services
+        .AddBusiness()
+        .AddDataAccess(builder.Configuration);
+
     // versioning the api
     builder.Services.AddApiVersioning(options =>
     {
-        options.DefaultApiVersion = new ApiVersion(1);
+        options.DefaultApiVersion = new ApiVersion(1, 0);
         options.ReportApiVersions = true;
         options.AssumeDefaultVersionWhenUnspecified = true;
     }).AddApiExplorer(options =>
     {
         options.GroupNameFormat = "'v'VVV";
         options.SubstituteApiVersionInUrl = true;
+        options.AddApiVersionParametersWhenVersionNeutral = true;
     });
 
-    // register dependencies in other players
-    builder.Services.AddSingleton<IFileStorageService, FileStorageService>();
-    builder.Services
-        .AddBusiness()
-        .AddDataAccess();
+    builder.Services.AddCors();
 }
 
 var app = builder.Build();
@@ -86,12 +113,18 @@ var app = builder.Build();
 
     app.UseMiddleware<ExceptionHandlerMiddleware>();
 
-    app.UseHttpsRedirection();
-
-    app.UseSerilogRequestLogging();
+    //app.UseHttpsRedirection();
 
     app.UseStaticFiles();
 
+    app.UseSerilogRequestLogging();
+
+    app.UseCors(policy => policy.AllowAnyHeader()
+        .AllowAnyMethod()
+        .WithOrigins()
+        .WithOrigins("http://localhost:4200", "http://192.168.2.11:4200"));
+
+    app.UseAuthentication();
     app.UseAuthorization();
 
     app.MapControllers();

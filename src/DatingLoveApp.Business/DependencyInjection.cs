@@ -1,6 +1,8 @@
-﻿using DatingLoveApp.Business.Common.Mapping;
+﻿using DatingLoveApp.Business.Common;
+using DatingLoveApp.Business.Common.Mapping;
 using DatingLoveApp.Business.Interfaces;
 using DatingLoveApp.Business.Services;
+using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace DatingLoveApp.Business;
@@ -11,7 +13,10 @@ public static class DependencyInjection
     {
         services.AddMappings();
 
+        services.AddValidatorsFromAssemblyContaining<IAssemblyMarker>();
+
         services.AddScoped<IUserService, UserService>();
+        services.AddScoped<IAuthenticationService, AuthenticationService>();
 
         return services;
     }

@@ -1,6 +1,8 @@
 ﻿using DatingLoveApp.Business.Common.Errors;
 using FluentResults;
+using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace DatingLoveApp.Api.Controllers;
 
@@ -22,5 +24,17 @@ public class ApiController : ControllerBase
             default:
                 return Problem(statusCode: StatusCodes.Status500InternalServerError, detail: firstError.Message);
         }
+    }
+
+    protected ActionResult Problem(List<ValidationFailure> errors)
+    {
+        ModelStateDictionary keyValuePairs = new ModelStateDictionary();
+
+        foreach (ValidationFailure failure in errors)
+        {
+            keyValuePairs.AddModelError(failure.PropertyName, failure.ErrorMessage);
+        }
+
+        return ValidationProblem(keyValuePairs);
     }
 }
