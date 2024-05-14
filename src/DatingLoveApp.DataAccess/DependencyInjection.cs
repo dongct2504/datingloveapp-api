@@ -18,6 +18,12 @@ public static class DependencyInjection
         this IServiceCollection services,
         ConfigurationManager configuration)
     {
+        // register redis
+        services.AddStackExchangeRedisCache(options =>
+            options.Configuration = configuration.GetConnectionString("Cache"));
+
+        services.AddSingleton<ICacheService, CacheService>();
+
         services.AddAuth(configuration);
 
         services.AddScoped<IUserRepository, UserRepository>();

@@ -20,39 +20,29 @@ public class Repository<T> : IRepository<T> where T : class
         _dbSet = dbContext.Set<T>();
     }
 
-    public async Task<IEnumerable<T>> GetAllAsync(QueryOptions<T>? options = null)
+    public async Task<IEnumerable<T>> GetAllAsync(QueryOptions<T>? options = null, bool asNoTracking = false)
     {
         if (options != null)
         {
-            return await BuildQuery(options).ToListAsync();
+            return await BuildQuery(options, asNoTracking).ToListAsync();
+        }
+
+        if (asNoTracking)
+        {
+            return await _dbSet.AsNoTracking().ToListAsync();
         }
 
         return await _dbSet.ToListAsync();
     }
 
-    public async Task<T?> GetAsync(int id)
-    {
-        return await _dbSet.FindAsync(id);
-    }
-
-    public async Task<T?> GetAsync(long id)
-    {
-        return await _dbSet.FindAsync(id);
-    }
-
-    public async Task<T?> GetAsync(Guid id)
-    {
-        return await _dbSet.FindAsync(id);
-    }
-
-    public async Task<T?> GetAsync(QueryOptions<T> options)
-    {
-        return await BuildQuery(options).FirstOrDefaultAsync();
-    }
-
     public async Task<int> GetCountAsync()
     {
         return count > 0 ? count : await _dbSet.CountAsync();
+    }
+
+    public async Task<T?> GetAsync(QueryOptions<T> options, bool asNoTracking = false)
+    {
+        return await BuildQuery(options, asNoTracking).FirstOrDefaultAsync();
     }
 
     public async Task AddAsync(T entity)
@@ -67,7 +57,7 @@ public class Repository<T> : IRepository<T> where T : class
         await _dbContext.SaveChangesAsync();
     }
 
-    private IQueryable<T> BuildQuery(QueryOptions<T> options)
+    private IQueryable<T> BuildQuery(QueryOptions<T> options, bool asNoTracking)
     {
         IQueryable<T> query = _dbSet; // ex: _context.Books;
 
@@ -88,15 +78,20 @@ public class Repository<T> : IRepository<T> where T : class
             count = query.Count(); // get filter count
         }
 
-        if (options.HasOrderBy)
+        if (asNoTracking)
         {
-            query = query.OrderBy(options.OrderBy);
+            query = query.AsNoTracking();
         }
 
         if (options.HasPaging)
         {
             query = query.Skip(options.PageSize * (options.PageNumber - 1))
                 .Take(options.PageSize);
+        }
+
+        if (options.HasOrderBy)
+        {
+            query = query.OrderBy(options.OrderBy);
         }
 
         return query;
