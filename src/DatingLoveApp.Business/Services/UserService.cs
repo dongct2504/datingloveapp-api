@@ -34,7 +34,7 @@ public class UserService : IUserService
 
     public async Task<PagedList<LocalUserDto>> GetAllAsync(int page)
     {
-        string key = "users";
+        string key = $"users-{page}";
 
         PagedList<LocalUserDto>? pagedListCache = await _cacheService.GetAsync<PagedList<LocalUserDto>>(key);
         if (pagedListCache != null)
