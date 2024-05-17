@@ -34,7 +34,7 @@ public class UserService : IUserService
 
     public async Task<PagedList<LocalUserDto>> GetAllAsync(int page)
     {
-        string key = $"users-{page}";
+        string key = $"{CacheConstants.Users}-{page}";
 
         PagedList<LocalUserDto>? pagedListCache = await _cacheService.GetAsync<PagedList<LocalUserDto>>(key);
         if (pagedListCache != null)
@@ -64,7 +64,7 @@ public class UserService : IUserService
 
     public async Task<Result<LocalUserDto>> GetByIdAsync(Guid id)
     {
-        string key = $"user-{id}";
+        string key = $"{CacheConstants.User}-{id}";
 
         LocalUserDto? userDtoCache = await _cacheService.GetAsync<LocalUserDto>(key);
         if (userDtoCache != null)
@@ -92,10 +92,7 @@ public class UserService : IUserService
 
     public async Task<Result> UpdateAsync(UpdateLocalUserDto userDto)
     {
-        LocalUser? user = await _userRepository.GetAsync(new QueryOptions<LocalUser>
-        {
-            Where = lc => lc.LocalUserId == userDto.LocalUserId
-        });
+        LocalUser? user = await _userRepository.GetAsync(userDto.LocalUserId);
         if (user == null)
         {
             string message = "User not found.";
@@ -118,17 +115,14 @@ public class UserService : IUserService
 
         await _userRepository.UpdateAsync(user);
 
-        await _cacheService.RemoveAsync($"user-{user.LocalUserId}");
+        await _cacheService.RemoveAsync($"{CacheConstants.User}-{user.LocalUserId}");
 
         return Result.Ok();
     }
 
     public async Task<Result> RemoveAsync(Guid id)
     {
-        LocalUser? user = await _userRepository.GetAsync(new QueryOptions<LocalUser>
-        {
-            Where = u => u.LocalUserId == id
-        });
+        LocalUser? user = await _userRepository.GetAsync(id);
         if (user == null)
         {
             string message = "User not found.";
@@ -140,7 +134,7 @@ public class UserService : IUserService
 
         await _fileStorageService.RemoveImageAsync(user.ImageUrl);
 
-        await _cacheService.RemoveAsync($"user-{user.LocalUserId}");
+        await _cacheService.RemoveAsync($"{CacheConstants.User}-{user.LocalUserId}");
 
         return Result.Ok();
     }

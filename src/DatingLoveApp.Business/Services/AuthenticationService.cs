@@ -13,15 +13,21 @@ namespace DatingLoveApp.Business.Services;
 
 public class AuthenticationService : IAuthenticationService
 {
+    private readonly ICacheService _cacheService;
     private readonly IUserRepository _userRepository;
     private readonly IJwtTokenGenerator _jwtTokenGenerator;
     private readonly IMapper _mapper;
 
-    public AuthenticationService(IUserRepository userRepository, IMapper mapper, IJwtTokenGenerator jwtTokenGenerator)
+    public AuthenticationService(
+        IUserRepository userRepository,
+        IMapper mapper,
+        IJwtTokenGenerator jwtTokenGenerator,
+        ICacheService cacheService)
     {
         _userRepository = userRepository;
         _mapper = mapper;
         _jwtTokenGenerator = jwtTokenGenerator;
+        _cacheService = cacheService;
     }
 
     public async Task<Result<AuthenticationDto>> RegisterAsync(RegisterLocalUserDto userDto)
@@ -48,7 +54,7 @@ public class AuthenticationService : IAuthenticationService
 
         //string token = _jwtTokenGenerator.GenerateEmailConfirmationToken(user);
 
-        return _mapper.Map<AuthenticationDto>((user, ""));
+        return _mapper.Map<AuthenticationDto>((user, "token"));
     }
 
     public async Task<Result<AuthenticationDto>> LoginAsync(LoginLocalUserDto userDto)

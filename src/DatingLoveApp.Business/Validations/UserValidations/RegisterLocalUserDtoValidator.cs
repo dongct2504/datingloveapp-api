@@ -15,9 +15,13 @@ public class RegisterLocalUserDtoValidator : AbstractValidator<RegisterLocalUser
             .EmailAddress();
 
         RuleFor(x => x.PhoneNumber)
-            .NotEmpty();
+            .NotEmpty()
+            .Must(ValidateForRequest.BeValidPhoneNumber).WithMessage("Phone number is invalid.");
 
         RuleFor(x => x.Password)
             .NotEmpty();
+
+        RuleFor(x => x.Role)
+            .Must(ValidateForRequest.BeValidRole).WithMessage("Role is invalid.");
     }
 }

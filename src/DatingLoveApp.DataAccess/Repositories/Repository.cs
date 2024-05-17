@@ -40,6 +40,21 @@ public class Repository<T> : IRepository<T> where T : class
         return count > 0 ? count : await _dbSet.CountAsync();
     }
 
+    public async Task<T?> GetAsync(int id)
+    {
+        return await _dbSet.FindAsync(id);
+    }
+
+    public async Task<T?> GetAsync(long id)
+    {
+        return await _dbSet.FindAsync(id);
+    }
+
+    public async Task<T?> GetAsync(Guid id)
+    {
+        return await _dbSet.FindAsync(id);
+    }
+
     public async Task<T?> GetAsync(QueryOptions<T> options, bool asNoTracking = false)
     {
         return await BuildQuery(options, asNoTracking).FirstOrDefaultAsync();
