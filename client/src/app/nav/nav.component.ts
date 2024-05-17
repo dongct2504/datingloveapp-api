@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
-import { AuthenticateService } from '../services/authenticate.service';
-import { LoginLocalUserDto } from '../dtos/authenticationDtos/loginLocalUserDto';
-import { Observable } from 'rxjs';
-import { LocalUserDto } from '../dtos/localUserDtos/localUserDto';
+import { AuthenticateService } from '../_services/authenticate.service';
+import { LoginLocalUserDto } from '../_dtos/authenticationDtos/loginLocalUserDto';
+import { Router } from '@angular/router';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-nav',
@@ -15,7 +15,7 @@ export class NavComponent implements OnInit {
     password: ''
   };
 
-  constructor(public authen: AuthenticateService) {
+  constructor(public authen: AuthenticateService, private router: Router, private toastr: ToastrService) {
   }
 
   ngOnInit(): void {
@@ -23,13 +23,15 @@ export class NavComponent implements OnInit {
 
   login(): void {
     this.authen.login(this.loginLocalUserDto).subscribe(response => {
-      console.log(response);
+      this.router.navigateByUrl('/members');
     }, err => {
       console.log(err);
+      this.toastr.error(err.error.detail);
     });
   }
 
   logout(): void {
     this.authen.logout();
+    this.router.navigateByUrl('/');
   }
 }
