@@ -1,0 +1,11 @@
+<div class="container">
+    <h1>Internal Server Error</h1>
+
+    <ng-container *ngIf="error">
+        <code class="mt-5" style="background-color: whitesmoke;">{{ error.details }}</code>
+    </ng-container>
+
+    <button class="btn btn-info btn-lg" routerLink="/">
+        Trở về
+    </button>
+</div>

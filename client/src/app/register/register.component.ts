@@ -19,6 +19,8 @@ export class RegisterComponent implements OnInit {
     role: null
   };
 
+  validationErrors?: string[];
+
   constructor(private authenService: AuthenticateService, private toastr: ToastrService) {
   }
 
@@ -31,7 +33,7 @@ export class RegisterComponent implements OnInit {
       this.cancel();
     }, err => {
       console.log(err);
-      this.toastr.error(err.error.detail);
+      this.validationErrors = err;
     });
   }
 

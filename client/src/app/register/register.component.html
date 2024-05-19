@@ -1,22 +1,37 @@
 <form #registerForm="ngForm" (ngSubmit)="register()" autocomplete="off">
     <h2 class="text-center text-primary">Đăng ký</h2>
     <hr>
+
+    <ng-container *ngIf="validationErrors">
+        <div class="row mt-2">
+            <ul class="text-danger">
+                <ng-container *ngFor="let error of validationErrors">
+                    <li>{{ error }}</li>
+                </ng-container>
+            </ul>
+        </div>
+    </ng-container>
+
     <div class="mb-3">
         <input type="text" class="form-control" name="userName"
             [(ngModel)]="registerUserDto.userName" placeholder="Username">
     </div>
+
     <div class="mb-3">
         <input type="email" class="form-control" name="email"
             [(ngModel)]="registerUserDto.email" placeholder="Email">
     </div>
+
     <div class="mb-3">
         <input type="tel" class="form-control" name="phoneNumber"
             [(ngModel)]="registerUserDto.phoneNumber" placeholder="Phone Number">
     </div>
+
     <div class="mb-3">
         <input type="password" class="form-control" name="password" 
             [(ngModel)]="registerUserDto.password" placeholder="Password">
     </div>
+
     <div class="mb-3 text-center">
         <button class="btn btn-success me-2" type="submit">Đăng ký</button>
         <button class="btn btn-danger" type="button" (click)="cancel()">Hủy</button>
