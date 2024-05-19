@@ -57,7 +57,7 @@ public class Repository<T> : IRepository<T> where T : class
 
     public async Task<T?> GetAsync(QueryOptions<T> options, bool asNoTracking = false)
     {
-        return await BuildQuery(options, asNoTracking).FirstOrDefaultAsync();
+        return await BuildQuery(options, asNoTracking).SingleOrDefaultAsync();
     }
 
     public async Task AddAsync(T entity)

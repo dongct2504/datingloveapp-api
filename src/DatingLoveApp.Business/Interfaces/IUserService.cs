@@ -8,7 +8,9 @@ public interface IUserService
 {
     Task<PagedList<LocalUserDto>> GetAllAsync(int page);
 
-    Task<Result<LocalUserDto>> GetByIdAsync(Guid id);
+    Task<Result<LocalUserDetailDto>> GetByIdAsync(Guid id);
+
+    Task<Result<LocalUserDetailDto>> GetByUsernameAsync(string username);
 
     Task<Result> UpdateAsync(UpdateLocalUserDto userDto);
 

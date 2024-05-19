@@ -31,12 +31,26 @@ public class UsersController : ApiController
     }
 
     [HttpGet("{id:guid}")]
-    [AllowAnonymous]
-    [ProducesResponseType(typeof(LocalUserDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(LocalUserDetailDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById(Guid id)
     {
-        Result<LocalUserDto> result = await _userService.GetByIdAsync(id);
+        Result<LocalUserDetailDto> result = await _userService.GetByIdAsync(id);
+        //Result<LocalUserDetailDto> result = await _userService.GetByIdAllAsync(id);
+        if (result.IsFailed)
+        {
+            return Problem(result.Errors);
+        }
+
+        return Ok(result.Value);
+    }
+
+    [HttpGet("{username}")]
+    [ProducesResponseType(typeof(LocalUserDetailDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetByUsername(string username)
+    {
+        Result<LocalUserDetailDto> result = await _userService.GetByUsernameAsync(username);
         if (result.IsFailed)
         {
             return Problem(result.Errors);

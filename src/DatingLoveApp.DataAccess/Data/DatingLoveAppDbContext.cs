@@ -18,6 +18,7 @@ namespace DatingLoveApp.DataAccess.Data
         }
 
         public virtual DbSet<LocalUser> LocalUsers { get; set; } = null!;
+        public virtual DbSet<Picture> Pictures { get; set; } = null!;
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -30,6 +31,17 @@ namespace DatingLoveApp.DataAccess.Data
                 entity.Property(e => e.LocalUserId).ValueGeneratedNever();
 
                 entity.Property(e => e.PhoneNumber).IsFixedLength();
+            });
+
+            modelBuilder.Entity<Picture>(entity =>
+            {
+                entity.Property(e => e.PictureId).ValueGeneratedNever();
+
+                entity.HasOne(d => d.LocalUser)
+                    .WithMany(p => p.Pictures)
+                    .HasForeignKey(d => d.LocalUserId)
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .HasConstraintName("FK_PICTURE_PICTURELO_LOCALUSER");
             });
 
             OnModelCreatingPartial(modelBuilder);

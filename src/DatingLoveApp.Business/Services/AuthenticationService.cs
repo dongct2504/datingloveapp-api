@@ -46,7 +46,8 @@ public class AuthenticationService : IAuthenticationService
         user = _mapper.Map<LocalUser>(userDto);
         user.LocalUserId = Guid.NewGuid();
         user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(userDto.Password);
-        user.Role ??= RoleConstants.Customer;
+        user.Role ??= RoleConstants.User;
+        user.LastActive = DateTime.Now;
         user.CreatedAt = DateTime.Now;
         user.UpdatedAt = DateTime.Now;
 
@@ -62,7 +63,7 @@ public class AuthenticationService : IAuthenticationService
         LocalUser? user = await _userRepository.GetAsync(new QueryOptions<LocalUser>
         {
             Where = u => u.UserName == userDto.UserName
-        });
+        }, asNoTracking: true);
         if (user == null)
         {
             string message = "The user name is incorrect.";

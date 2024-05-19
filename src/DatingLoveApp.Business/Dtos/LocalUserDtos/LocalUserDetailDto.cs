@@ -1,6 +1,8 @@
-﻿namespace DatingLoveApp.Business.Dtos.LocalUserDtos;
+﻿using DatingLoveApp.Business.Dtos.PictureDtos;
 
-public class LocalUserDto
+namespace DatingLoveApp.Business.Dtos.LocalUserDtos;
+
+public class LocalUserDetailDto
 {
     public Guid LocalUserId { get; set; }
 
@@ -16,6 +18,12 @@ public class LocalUserDto
 
     public string? KnownAs { get; set; }
 
+    public string? Introduction { get; set; }
+
+    public string? Interest { get; set; }
+
+    public string? LookingFor { get; set; }
+
     public string? ProfilePictureUrl { get; set; }
 
     public DateTime LastActive { get; set; }
@@ -27,4 +35,6 @@ public class LocalUserDto
     public string? District { get; set; }
 
     public string? City { get; set; }
+
+    public IEnumerable<PictureDto>? Pictures { get; set; }
 }

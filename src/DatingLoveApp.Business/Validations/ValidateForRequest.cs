@@ -18,8 +18,32 @@ public static class ValidateForRequest
             return true;
         }
 
-        return role == RoleConstants.Customer ||
+        return role == RoleConstants.User ||
             role == RoleConstants.Employee ||
             role == RoleConstants.Admin;
+    }
+
+    public static bool BeValidAge(DateTime date)
+    {
+        if (date == default)
+        {
+            return false;
+        }
+
+        int minAge = 16, maxAge = 120;
+        int age = DateTime.Today.Year - date.Year;
+        if (date > DateTime.Today.AddYears(-age)) // 2003/8/20 > 2003/5/19
+        {
+            age--;
+        }
+
+        return age >= minAge && age <= maxAge;
+    }
+
+    public static bool BeValidGender(string gender)
+    {
+        return gender == GenderConstants.Male ||
+            gender == GenderConstants.Female ||
+            gender == GenderConstants.Unknown;
     }
 }

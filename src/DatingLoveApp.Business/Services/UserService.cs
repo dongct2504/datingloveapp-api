@@ -4,11 +4,13 @@ using DatingLoveApp.Business.Common.Errors;
 using DatingLoveApp.Business.Dtos;
 using DatingLoveApp.Business.Dtos.LocalUserDtos;
 using DatingLoveApp.Business.Interfaces;
+using DatingLoveApp.DataAccess.Data;
 using DatingLoveApp.DataAccess.Entities;
-using DatingLoveApp.DataAccess.Extensions;
 using DatingLoveApp.DataAccess.Interfaces;
 using FluentResults;
+using Mapster;
 using MapsterMapper;
+using Microsoft.EntityFrameworkCore;
 using Serilog;
 
 namespace DatingLoveApp.Business.Services;
@@ -16,6 +18,7 @@ namespace DatingLoveApp.Business.Services;
 public class UserService : IUserService
 {
     private readonly ICacheService _cacheService;
+    private readonly DatingLoveAppDbContext _dbContext;
     private readonly IUserRepository _userRepository;
     private readonly IFileStorageService _fileStorageService;
     private readonly IMapper _mapper;
@@ -24,12 +27,14 @@ public class UserService : IUserService
         IUserRepository userRepository,
         IFileStorageService fileStorageService,
         IMapper mapper,
-        ICacheService cacheService)
+        ICacheService cacheService,
+        DatingLoveAppDbContext dbContext)
     {
         _userRepository = userRepository;
         _fileStorageService = fileStorageService;
         _mapper = mapper;
         _cacheService = cacheService;
+        _dbContext = dbContext;
     }
 
     public async Task<PagedList<LocalUserDto>> GetAllAsync(int page)
@@ -42,18 +47,18 @@ public class UserService : IUserService
             return pagedListCache;
         }
 
-        QueryOptions<LocalUser> options = new QueryOptions<LocalUser>
-        {
-            PageNumber = page,
-            PageSize = PageSizeConstants.Default50
-        };
+        IEnumerable<LocalUserDto> localUserDtos = await _dbContext.LocalUsers
+            .AsNoTracking()
+            .ProjectToType<LocalUserDto>()
+            .Skip(PageSizeConstants.Default50 * (page - 1))
+            .Take(PageSizeConstants.Default50)
+            .ToListAsync();
 
         PagedList<LocalUserDto> pagedList = new PagedList<LocalUserDto>
         {
             PageNumber = page,
             PageSize = PageSizeConstants.Default50,
-            Items = _mapper.Map<IEnumerable<LocalUserDto>>(
-                await _userRepository.GetAllAsync(options, asNoTracking: true)),
+            Items = localUserDtos,
             TotalRecords = await _userRepository.GetCountAsync()
         };
 
@@ -62,32 +67,60 @@ public class UserService : IUserService
         return pagedList;
     }
 
-    public async Task<Result<LocalUserDto>> GetByIdAsync(Guid id)
+    public async Task<Result<LocalUserDetailDto>> GetByIdAsync(Guid id)
     {
         string key = $"{CacheConstants.User}-{id}";
 
-        LocalUserDto? userDtoCache = await _cacheService.GetAsync<LocalUserDto>(key);
+        LocalUserDetailDto? userDtoCache = await _cacheService.GetAsync<LocalUserDetailDto>(key);
         if (userDtoCache != null)
         {
             return userDtoCache;
         }
 
-        LocalUser? user = await _userRepository.GetAsync(new QueryOptions<LocalUser>
-        {
-            Where = lc => lc.LocalUserId == id
-        }, asNoTracking: true);
-        if (user == null)
+        LocalUserDetailDto? userDetailDto = await _dbContext.LocalUsers
+            .Where(u => u.LocalUserId == id)
+            .AsNoTracking()
+            .ProjectToType<LocalUserDetailDto>()
+            .SingleOrDefaultAsync();
+
+        if (userDetailDto == null)
         {
             string message = "User not found.";
             Log.Warning($"{nameof(GetByIdAsync)} - {message} - {typeof(UserService)}");
             return Result.Fail(new NotFoundError(message));
         }
 
-        userDtoCache = _mapper.Map<LocalUserDto>(user);
+        await _cacheService.SetAsync(key, userDetailDto, CacheOptions.DefaultExpiration);
 
-        await _cacheService.SetAsync(key, userDtoCache, CacheOptions.DefaultExpiration);
+        return userDetailDto;
+    }
 
-        return userDtoCache;
+    public async Task<Result<LocalUserDetailDto>> GetByUsernameAsync(string username)
+    {
+        string key = $"{CacheConstants.User}-{username}";
+
+        LocalUserDetailDto? userDtoCache = await _cacheService.GetAsync<LocalUserDetailDto>(key);
+        if (userDtoCache != null)
+        {
+            return userDtoCache;
+        }
+
+        LocalUserDetailDto? userDetailDto = await _dbContext.LocalUsers
+            .Where(u => u.UserName == username)
+            .AsNoTracking()
+            .ProjectToType<LocalUserDetailDto>()
+            .SingleOrDefaultAsync();
+
+        if (userDetailDto == null)
+        {
+            string message = "User not found.";
+            Log.Warning($"{nameof(GetByIdAsync)} - {message} - {typeof(UserService)}");
+            return Result.Fail(new NotFoundError(message));
+        }
+
+        await _cacheService.SetAsync(key, userDetailDto, CacheOptions.DefaultExpiration);
+
+        return userDetailDto;
     }
 
     public async Task<Result> UpdateAsync(UpdateLocalUserDto userDto)
@@ -101,16 +134,7 @@ public class UserService : IUserService
         }
 
         _mapper.Map(userDto, user);
-        user.Role ??= RoleConstants.Customer;
-
-        if (userDto.ImageFile != null)
-        {
-            await _fileStorageService.RemoveImageAsync(user.ImageUrl);
-
-            string image = await _fileStorageService.UploadImageAsync(userDto.ImageFile, UploadPath.UserImageUploadPath);
-            user.ImageUrl = UploadPath.UserImageUploadPath + image;
-        }
-
+        user.Role ??= RoleConstants.User;
         user.UpdatedAt = DateTime.Now;
 
         await _userRepository.UpdateAsync(user);
@@ -131,8 +155,6 @@ public class UserService : IUserService
         }
 
         await _userRepository.RemoveAsync(user);
-
-        await _fileStorageService.RemoveImageAsync(user.ImageUrl);
 
         await _cacheService.RemoveAsync($"{CacheConstants.User}-{user.LocalUserId}");
 

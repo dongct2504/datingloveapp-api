@@ -8,13 +8,18 @@ namespace DatingLoveApp.DataAccess.Entities
 {
     public partial class LocalUser
     {
+        public LocalUser()
+        {
+            Pictures = new HashSet<Picture>();
+        }
+
         [Key]
         public Guid LocalUserId { get; set; }
-        [StringLength(50)]
+        [StringLength(30)]
         public string? FirstName { get; set; }
-        [StringLength(50)]
+        [StringLength(30)]
         public string? LastName { get; set; }
-        [StringLength(128)]
+        [StringLength(50)]
         [Unicode(false)]
         public string UserName { get; set; } = null!;
         [StringLength(128)]
@@ -28,16 +33,26 @@ namespace DatingLoveApp.DataAccess.Entities
         public string PhoneNumber { get; set; } = null!;
         public bool IsConfirmPhoneNumber { get; set; }
         [Column(TypeName = "datetime")]
-        public DateTime? DateOfBirth { get; set; }
+        public DateTime DateOfBirth { get; set; }
+        [StringLength(10)]
+        [Unicode(false)]
+        public string Gender { get; set; } = null!;
+        [StringLength(50)]
+        public string? KnownAs { get; set; }
+        [StringLength(256)]
+        public string? Introduction { get; set; }
+        [StringLength(128)]
+        public string? Interest { get; set; }
+        [StringLength(128)]
+        public string? LookingFor { get; set; }
+        [Column(TypeName = "datetime")]
+        public DateTime LastActive { get; set; }
         [Column(TypeName = "datetime")]
         public DateTime? LockoutEndDate { get; set; }
         public bool LockoutEnable { get; set; }
         [StringLength(20)]
         [Unicode(false)]
         public string Role { get; set; } = null!;
-        [StringLength(1024)]
-        [Unicode(false)]
-        public string? ImageUrl { get; set; }
         [StringLength(128)]
         public string? Address { get; set; }
         [StringLength(50)]
@@ -50,5 +65,8 @@ namespace DatingLoveApp.DataAccess.Entities
         public DateTime CreatedAt { get; set; }
         [Column(TypeName = "datetime")]
         public DateTime UpdatedAt { get; set; }
+
+        [InverseProperty("LocalUser")]
+        public virtual ICollection<Picture> Pictures { get; set; }
     }
 }
