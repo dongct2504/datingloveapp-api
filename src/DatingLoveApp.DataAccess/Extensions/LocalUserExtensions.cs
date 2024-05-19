@@ -14,4 +14,9 @@ public static class LocalUserExtensions
 
         return age;
     }
+
+    public static string? GetMainProfilePictureUrl(this IEnumerable<Picture> pictures)
+    {
+        return pictures.FirstOrDefault(p => p.IsMain)?.ImageUrl;
+    }
 }

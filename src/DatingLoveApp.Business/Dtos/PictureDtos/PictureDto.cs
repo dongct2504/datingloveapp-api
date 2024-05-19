@@ -4,7 +4,7 @@ public class PictureDto
 {
     public Guid PictureId { get; set; }
 
-    public Guid? LocalUserId { get; set; }
+    public Guid LocalUserId { get; set; }
 
     public string ImageUrl { get; set; } = null!;
 

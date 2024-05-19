@@ -11,7 +11,7 @@ namespace DatingLoveApp.DataAccess.Entities
     {
         [Key]
         public Guid PictureId { get; set; }
-        public Guid? LocalUserId { get; set; }
+        public Guid LocalUserId { get; set; }
         [StringLength(1024)]
         [Unicode(false)]
         public string ImageUrl { get; set; } = null!;

@@ -54,8 +54,9 @@ public class AuthenticationService : IAuthenticationService
         await _userRepository.AddAsync(user);
 
         //string token = _jwtTokenGenerator.GenerateEmailConfirmationToken(user);
+        string token = "token";
 
-        return _mapper.Map<AuthenticationDto>((user, "token"));
+        return _mapper.Map<AuthenticationDto>((user, token));
     }
 
     public async Task<Result<AuthenticationDto>> LoginAsync(LoginLocalUserDto userDto)

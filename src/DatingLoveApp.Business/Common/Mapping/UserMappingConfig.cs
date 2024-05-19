@@ -12,11 +12,11 @@ public class UserMappingConfig : IRegister
     {
         config.NewConfig<LocalUser, LocalUserDto>()
             .Map(dest => dest.Age, src => src.DateOfBirth.GetAge())
-            .Map(dest => dest.ProfilePictureUrl, src => src.Pictures.FirstOrDefault(p => p.IsMain).ImageUrl);
+            .Map(dest => dest.ProfilePictureUrl, src => src.Pictures.GetMainProfilePictureUrl());
 
         config.NewConfig<LocalUser, LocalUserDetailDto>()
             .Map(dest => dest.Age, src => src.DateOfBirth.GetAge())
-            .Map(dest => dest.ProfilePictureUrl, src => src.Pictures.FirstOrDefault(p => p.IsMain).ImageUrl);
+            .Map(dest => dest.ProfilePictureUrl, src => src.Pictures.GetMainProfilePictureUrl());
 
         config.NewConfig<Picture, PictureDto>();
 
