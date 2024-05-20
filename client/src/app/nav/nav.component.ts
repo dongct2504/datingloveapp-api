@@ -10,10 +10,7 @@ import { ToastrService } from 'ngx-toastr';
   styleUrls: ['./nav.component.css']
 })
 export class NavComponent implements OnInit {
-  loginLocalUserDto: LoginLocalUserDto = {
-    userName: '',
-    password: ''
-  };
+  loginLocalUserDto: LoginLocalUserDto = {} as LoginLocalUserDto;
 
   constructor(public authen: AuthenticateService, private router: Router, private toastr: ToastrService) {
   }

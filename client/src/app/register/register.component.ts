@@ -11,13 +11,7 @@ import { ToastrService } from 'ngx-toastr';
 export class RegisterComponent implements OnInit {
   @Output() cancelRegister = new EventEmitter(); // emitting an event
 
-  registerUserDto: RegisterLocalUserDto = {
-    userName: '',
-    email: '',
-    phoneNumber: '',
-    password: '',
-    role: null
-  };
+  registerUserDto: RegisterLocalUserDto = {} as RegisterLocalUserDto;
 
   validationErrors?: string[];
 

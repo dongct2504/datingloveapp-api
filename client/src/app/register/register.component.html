@@ -13,23 +13,33 @@
     </ng-container>
 
     <div class="mb-3">
-        <input type="text" class="form-control" name="userName"
-            [(ngModel)]="registerUserDto.userName" placeholder="Username">
+        <label class="form-label">Tên đăng nhập</label>
+        <input type="text" class="form-control" name="userName" [(ngModel)]="registerUserDto.userName" />
     </div>
 
     <div class="mb-3">
-        <input type="email" class="form-control" name="email"
-            [(ngModel)]="registerUserDto.email" placeholder="Email">
+        <label class="form-label">Email</label>
+        <input type="email" class="form-control" name="email" [(ngModel)]="registerUserDto.email" />
     </div>
 
     <div class="mb-3">
-        <input type="tel" class="form-control" name="phoneNumber"
-            [(ngModel)]="registerUserDto.phoneNumber" placeholder="Phone Number">
+        <label class="form-label">Số điện thoại</label>
+        <input type="tel" class="form-control" name="phoneNumber" [(ngModel)]="registerUserDto.phoneNumber" />
     </div>
 
     <div class="mb-3">
-        <input type="password" class="form-control" name="password" 
-            [(ngModel)]="registerUserDto.password" placeholder="Password">
+        <label class="form-label">Ngày sinh</label>
+        <input type="datetime" class="form-control" name="dateOfBirth" [(ngModel)]="registerUserDto.dateOfBirth" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Giới tính</label>
+        <input type="text" class="form-control" name="gender" [(ngModel)]="registerUserDto.gender" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Mật khẩu</label>
+        <input type="password" class="form-control" name="password" [(ngModel)]="registerUserDto.password" />
     </div>
 
     <div class="mb-3 text-center">

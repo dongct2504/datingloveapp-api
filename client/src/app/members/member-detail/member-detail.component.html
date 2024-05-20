@@ -1,1 +1,52 @@
-<p>member-detail works!</p>
+<div class="row">
+    <div class="col-4">
+        <div class="card">
+            <img src="{{member.profilePictureUrl || './assets/user.png'}}" alt="{{member.knownAs}}"
+                class="card-img-top img-thumbnail">
+            <div class="card-body">
+                <div>
+                    <strong>Họ và tên</strong>
+                    <p>{{member.lastName}} {{member.firstName}}, nickname: {{member.knownAs}}</p>
+                </div>
+                <div>
+                    <strong>Tuổi</strong>
+                    <p>{{member.age}}</p>
+                </div>
+                <div>
+                    <strong>Địa chỉ:</strong>
+                    <p>{{member.address}}, {{member.ward}}, {{member.district}}, {{member.city}}</p>
+                </div>
+                <div>
+                    <p class="muted">Đã hoạt động {{member.lastActive}} trước</p>
+                </div>
+            </div>
+            <div class="card-footer">
+                <div class="btn-group d-flex">
+                    <button class="btn btn-primary">Thích</button>
+                    <button class="btn btn-success">Nhắn tin</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-8">
+        <tabset>
+            <tab heading="Thông tin" class="mt-2">
+                <h4>Mô tả</h4>
+                <p>{{member.introduction}}</p>
+                <h4>Tìm kiếm</h4>
+                <p>{{member.lookingFor}}</p>
+                <h4>Sở thích</h4>
+                <p>{{member.interest}}</p>
+            </tab>
+            <tab heading="Ảnh" class="mt-2">
+                <ngx-gallery [options]="galleryOptions" [images]="galleryImages"
+                    style="display: inline-block; margin-bottom: 20px;">
+                </ngx-gallery>
+            </tab>
+            <tab heading="Trò chuyện" class="mt-2">
+                <p>Stuff</p>
+            </tab>
+        </tabset>
+    </div>
+</div>

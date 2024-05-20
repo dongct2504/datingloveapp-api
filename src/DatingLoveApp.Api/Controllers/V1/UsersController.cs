@@ -23,7 +23,6 @@ public class UsersController : ApiController
     }
 
     [HttpGet]
-    [AllowAnonymous]
     [ProducesResponseType(typeof(PagedList<LocalUserDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll(int page = 1)
     {

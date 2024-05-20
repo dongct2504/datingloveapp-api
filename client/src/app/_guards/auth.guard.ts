@@ -1,21 +1,20 @@
 import { Injectable } from '@angular/core';
 import { CanActivate } from '@angular/router';
-import { Observable, map, tap } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import { AuthenticateService } from '../_services/authenticate.service';
-import { ToastrService } from 'ngx-toastr';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthGuard implements CanActivate {
-  constructor(private auth: AuthenticateService, private toastr: ToastrService) {
+  constructor(private auth: AuthenticateService) {
   }
 
   canActivate(): Observable<boolean> {
     // don't need to subcribe to currentUser cus it automatically subcribe for u.
-    return this.auth.currentUser$.pipe(
-      map(user => {
-        if (user) return true;
+    return this.auth.currentAuthenUser$.pipe(
+      map(authenUser => {
+        if (authenUser) return true;
         return false;
       })
     );

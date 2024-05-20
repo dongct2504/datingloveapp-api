@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { AuthenticateService } from './_services/authenticate.service';
-import { LocalUserDto } from './_dtos/localUserDtos/localUserDto';
+import { AuthenticationDto } from './_dtos/authenticationDtos/authenticationDto';
 
 @Component({
   selector: 'app-root',
@@ -13,15 +13,15 @@ export class AppComponent implements OnInit {
   constructor(private authen: AuthenticateService) {
   }
 
-  ngOnInit(): void {
+  ngOnInit() {
     this.setCurrentUser();
   }
 
-  setCurrentUser(): void {
-    const userDtoFromStorage = localStorage.getItem('userDto');
-    if (userDtoFromStorage) {
-      const userDto: LocalUserDto = JSON.parse(userDtoFromStorage);
-      this.authen.setCurrentUser(userDto)
+  setCurrentUser() {
+    const authenUserJson = localStorage.getItem('authenUser');
+    if (authenUserJson) {
+      const authenUser: AuthenticationDto = JSON.parse(authenUserJson);
+      this.authen.setAuthenUser(authenUser);
     }
   }
 }

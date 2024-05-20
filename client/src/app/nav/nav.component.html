@@ -3,7 +3,7 @@
         <a class="navbar-brand" routerLink="/">DatingLove App</a>
 
         <ul class="navbar-nav me-auto mb-2 mb-md-0">
-            <ng-container *ngIf="authen.currentUser$ | async">
+            <ng-container *ngIf="authen.currentAuthenUser$ | async">
                 <li class="nav-item">
                     <a class="nav-link" routerLink="/members" routerLinkActive="active">Matches</a>
                 </li>
@@ -16,9 +16,11 @@
             </ng-container>
         </ul>
 
-        <ng-container *ngIf="(authen.currentUser$ | async) as user">
+        <ng-container *ngIf="(authen.currentAuthenUser$ | async) as authenUser">
             <div class="dropdown" dropdown>
-                <a class="dropdown-toggle text-light" dropdownToggle>{{ user.userName | titlecase }}</a>
+                <a class="dropdown-toggle text-light" dropdownToggle>
+                    {{ authenUser.localUserDto?.userName| titlecase }}
+                </a>
                 <div class="dropdown-menu dropdown-menu-right" *dropdownMenu>
                     <a class="dropdown-item">Profile</a>
                     <div class="dropdown-divider"></div>
@@ -27,7 +29,7 @@
             </div>
         </ng-container>
 
-        <ng-container *ngIf="(authen.currentUser$ | async) === null">
+        <ng-container *ngIf="(authen.currentAuthenUser$ | async) === null">
             <form #loginForm="ngForm" class="d-flex" (ngSubmit)="login()" autocomplete="off">
                 <input 
                     name="username"
