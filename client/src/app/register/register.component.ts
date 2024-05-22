@@ -1,6 +1,7 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { AuthenticateService } from '../_services/authenticate.service';
 import { RegisterLocalUserDto } from '../_dtos/authenticationDtos/registerLocalUserDto';
+import { Router } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 
 @Component({
@@ -9,29 +10,24 @@ import { ToastrService } from 'ngx-toastr';
   styleUrls: ['./register.component.css']
 })
 export class RegisterComponent implements OnInit {
-  @Output() cancelRegister = new EventEmitter(); // emitting an event
+  // @Output() cancelRegister = new EventEmitter(); // emitting an event
 
   registerUserDto: RegisterLocalUserDto = {} as RegisterLocalUserDto;
 
   validationErrors?: string[];
 
-  constructor(private authenService: AuthenticateService, private toastr: ToastrService) {
+  constructor(private authenService: AuthenticateService, private router: Router, private toastr: ToastrService) {
   }
 
   ngOnInit(): void {
   }
 
   register() {
-    this.authenService.register(this.registerUserDto).subscribe(response => {
-      console.log(response);
-      this.cancel();
+    this.authenService.register(this.registerUserDto).subscribe(() => {
+      this.toastr.success('Đăng ký thành công!');
+      this.router.navigateByUrl('/members');
     }, err => {
-      console.log(err);
       this.validationErrors = err;
     });
-  }
-
-  cancel() {
-    this.cancelRegister.emit(false);
   }
 }

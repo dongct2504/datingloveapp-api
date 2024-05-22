@@ -1,23 +1,19 @@
-import { PictureDto } from '../pictureDtos/pictureDto'
-
-export interface LocalUserDetailDto {
+export interface UpdateLocalUserDto {
     localUserId: string;
     firstName: string | null;
     lastName: string | null;
+    dateOfBirth: string;
     userName: string;
     email: string;
     phoneNumber: string;
-    dateOfBirth: string;
     gender: string;
     nickname: string;
     introduction: string | null;
     interest: string | null;
     idealType: string | null;
-    profilePictureUrl: string | null;
-    lastActive: string;
     address: string | null;
     ward: string | null;
     district: string | null;
     city: string | null;
-    pictures: PictureDto[] | null;
+    role: string | null;
 }

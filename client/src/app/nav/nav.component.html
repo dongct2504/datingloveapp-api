@@ -5,10 +5,10 @@
         <ul class="navbar-nav me-auto mb-2 mb-md-0">
             <ng-container *ngIf="authen.currentAuthenUser$ | async">
                 <li class="nav-item">
-                    <a class="nav-link" routerLink="/members" routerLinkActive="active">Matches</a>
+                    <a class="nav-link" routerLink="/members" routerLinkActive="active">Tìm kiếm</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" routerLink="lists" routerLinkActive="active">Danh sách</a>
+                    <a class="nav-link" routerLink="/lists" routerLinkActive="active">Đã thích</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" routerLink="/messages" routerLinkActive="active">Tin nhắn</a>
@@ -19,32 +19,18 @@
         <ng-container *ngIf="(authen.currentAuthenUser$ | async) as authenUser">
             <div class="dropdown" dropdown>
                 <a class="dropdown-toggle text-light" dropdownToggle>
-                    {{ authenUser.localUserDto?.userName| titlecase }}
+                    {{ authenUser.localUserDto?.userName | titlecase }}
                 </a>
                 <div class="dropdown-menu dropdown-menu-right" *dropdownMenu>
-                    <a class="dropdown-item">Profile</a>
+                    <a class="dropdown-item" routerLink="/member/edit">Hồ sơ</a>
                     <div class="dropdown-divider"></div>
-                    <a class="dropdown-item" (click)="logout()">Logout</a>
+                    <a class="dropdown-item" (click)="logout()">Đăng xuất</a>
                 </div>
             </div>
         </ng-container>
 
         <ng-container *ngIf="(authen.currentAuthenUser$ | async) === null">
-            <form #loginForm="ngForm" class="d-flex" (ngSubmit)="login()" autocomplete="off">
-                <input 
-                    name="username"
-                    [(ngModel)]="loginLocalUserDto.userName"
-                    class="form-control me-2"
-                    type="text"
-                    placeholder="Username">
-                <input
-                    name="password"
-                    [(ngModel)]="loginLocalUserDto.password"
-                    class="form-control me-2"
-                    type="password"
-                    placeholder="Password">
-                <button class="btn btn-outline-success" type="submit">Login</button>
-            </form>
+            <button type="button" class="btn btn-outline-success" routerLink="/login">Đăng nhập</button>
         </ng-container>
     </div>
 </nav>

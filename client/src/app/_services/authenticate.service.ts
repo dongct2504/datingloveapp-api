@@ -20,7 +20,7 @@ export class AuthenticateService {
 
   login(model: LoginLocalUserDto) {
     return this.http.post(this.apiUrl + 'authen/login', model).pipe(
-      map((response: any) => {
+      map(response => {
         const authenticationDto = response as AuthenticationDto;
         if (authenticationDto) {
           localStorage.setItem('authenUser', JSON.stringify(authenticationDto));
@@ -32,7 +32,7 @@ export class AuthenticateService {
 
   register(model: RegisterLocalUserDto) {
     return this.http.post(this.apiUrl + 'authen/register', model).pipe(
-      map((response: any) => {
+      map(response => {
         const authenticationDto = response as AuthenticationDto;
         if (authenticationDto) {
           localStorage.setItem('authenUser', JSON.stringify(authenticationDto));
@@ -42,12 +42,20 @@ export class AuthenticateService {
     )
   }
 
-  setAuthenUser(authenUser: AuthenticationDto) {
-    this.currentAuthenUserSource.next(authenUser);
-  }
-
   logout() {
     localStorage.removeItem('authenUser');
     this.currentAuthenUserSource.next(null);
+  }
+
+  checkInitializeAuthenUser() {
+    const authenUserJson = localStorage.getItem('authenUser');
+    if (authenUserJson) {
+      const authenUser: AuthenticationDto = JSON.parse(authenUserJson);
+      this.currentAuthenUserSource.next(authenUser);
+    }
+  }
+
+  isLoggedGuard(): boolean {
+    return localStorage.getItem('authenUser') !== null;
   }
 }

@@ -18,6 +18,10 @@ import { ErrorInterceptor } from './_interceptors/error.interceptor';
 import { NotFoundComponent } from './errors/not-found/not-found.component';
 import { InternalServerErrorComponent } from './errors/internal-server-error/internal-server-error.component';
 import { JwtInterceptor } from './_interceptors/jwt.interceptor';
+import { MemberEditComponent } from './members/member-edit/member-edit.component';
+import { LoginComponent } from './login/login.component';
+import { AgePipe } from './_pipes/age.pipe';
+import { LoadingInterceptor } from './_interceptors/loading.interceptor';
 
 @NgModule({
   declarations: [
@@ -30,7 +34,10 @@ import { JwtInterceptor } from './_interceptors/jwt.interceptor';
     ListsComponent,
     MessagesComponent,
     NotFoundComponent,
-    InternalServerErrorComponent
+    InternalServerErrorComponent,
+    MemberEditComponent,
+    LoginComponent,
+    AgePipe
   ],
   imports: [
     BrowserModule,
@@ -42,7 +49,8 @@ import { JwtInterceptor } from './_interceptors/jwt.interceptor';
   ],
   providers: [
     { provide: HTTP_INTERCEPTORS, useClass: ErrorInterceptor, multi: true },
-    { provide: HTTP_INTERCEPTORS, useClass: JwtInterceptor, multi: true }
+    { provide: HTTP_INTERCEPTORS, useClass: JwtInterceptor, multi: true },
+    { provide: HTTP_INTERCEPTORS, useClass: LoadingInterceptor, multi: true }
   ],
   bootstrap: [AppComponent]
 })

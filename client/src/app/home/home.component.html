@@ -1,22 +1,8 @@
-<div class="container mt-5">
-    <ng-container *ngIf="!registerMode">
-        <div style="text-align: center;">
-            <h1>Tìm kiếm</h1>
-            <p class="lead">Để kết bạn và trò truyện với mọi người thì bạn chỉ cần đăng kí!</p>
-            <div class="text-center">
-                <button (click)="registerToggle()" class="btn btn-primary btn-lg me-2">Đăng kí</button>
-                <button class="btn btn-info btn-lg mr-2">Tìm hiểu thêm</button>
-            </div>
-        </div>
-    </ng-container>
-
-    <ng-container *ngIf="registerMode">
-        <div class="container">
-            <div class="row justify-content-center">
-                <div class="col-lg-4 col-md-6">
-                    <app-register (cancelRegister)="cancelRegisterMode($event)"></app-register>
-                </div>
-            </div>
-        </div>
-    </ng-container>
+<div style="text-align: center;">
+    <h1>Tìm kiếm</h1>
+    <p class="lead">Để kết bạn và trò truyện với mọi người thì bạn chỉ cần đăng kí!</p>
+    <div class="text-center">
+        <button class="btn btn-primary btn-lg me-2" routerLink="/register">Đăng kí</button>
+        <button class="btn btn-info btn-lg mr-2">Tìm hiểu thêm</button>
+    </div>
 </div>

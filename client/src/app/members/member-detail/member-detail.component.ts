@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { NgxGalleryAnimation, NgxGalleryImage, NgxGalleryOptions } from '@kolkov/ngx-gallery';
+import { NgxGalleryAnimation, NgxGalleryImage, NgxGalleryOptions } from '@rybos/ngx-gallery';
 import { LocalUserDetailDto } from 'src/app/_dtos/localUserDtos/localUserDetailDto';
 import { UserService } from 'src/app/_services/user.service';
 
@@ -46,6 +46,13 @@ export class MemberDetailComponent implements OnInit {
     ];
   }
 
+  getMember() {
+    return this.userService.getById(this.route.snapshot.paramMap.get('username') || '').subscribe(user => {
+      this.member = user;
+      this.galleryImages = this.getImages();
+    });
+  }
+
   getImages() {
     const imageUrls: NgxGalleryImage[] = [];
 
@@ -60,12 +67,5 @@ export class MemberDetailComponent implements OnInit {
     }
 
     return imageUrls;
-  }
-
-  getMember() {
-    return this.userService.getById(this.route.snapshot.paramMap.get('username') || '').subscribe(user => {
-      this.member = user;
-      this.galleryImages = this.getImages();
-    });
   }
 }

@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { Observable } from 'rxjs';
 import { LocalUserDetailDto } from 'src/app/_dtos/localUserDtos/localUserDetailDto';
 import { LocalUserDto } from 'src/app/_dtos/localUserDtos/localUserDto';
 import { PagedList } from 'src/app/_dtos/pagedList';
@@ -10,19 +11,16 @@ import { UserService } from 'src/app/_services/user.service';
   styleUrls: ['./member-list.component.css']
 })
 export class MemberListComponent implements OnInit {
-  pagedList: PagedList<LocalUserDto> = {} as PagedList<LocalUserDto>;
-  user: LocalUserDetailDto = {} as LocalUserDetailDto;
+  // user = {} as LocalUserDetailDto;
+  // user$ = {} as Observable<LocalUserDetailDto>;
+
+  // pagedList = {} as PagedList<LocalUserDto>;
+  pagedList$ = {} as Observable<PagedList<LocalUserDto>>;
 
   constructor(private userService: UserService) {
   }
 
   ngOnInit(): void {
-    this.loadUsers();
-  }
-
-  loadUsers() {
-    this.userService.getAll().subscribe(pagedList => {
-      this.pagedList = pagedList;
-    });
+    this.pagedList$ = this.userService.getAll();
   }
 }

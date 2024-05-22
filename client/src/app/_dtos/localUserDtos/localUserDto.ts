@@ -1,13 +1,10 @@
 export interface LocalUserDto {
     localUserId: string;
-    firstName: string | null;
-    lastName: string | null;
     userName: string;
-    age: number;
+    dateOfBirth: string;
     gender: string;
-    knownAs: string | null;
+    nickname: string;
     profilePictureUrl: string | null;
-    lastActive: string;
     address: string | null;
     ward: string | null;
     district: string | null;

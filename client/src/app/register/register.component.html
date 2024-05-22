@@ -1,49 +1,57 @@
-<form #registerForm="ngForm" (ngSubmit)="register()" autocomplete="off">
-    <h2 class="text-center text-primary">Đăng ký</h2>
-    <hr>
+<div class="row justify-content-center">
+    <div class="col-lg-4 col-md-6">
+        <form #registerForm="ngForm" (ngSubmit)="register()" autocomplete="off">
+            <h2 class="text-center">Đăng ký</h2>
+            <hr>
+            <ng-container *ngIf="validationErrors">
+                <div class="row mt-2">
+                    <ul class="text-danger">
+                        <ng-container *ngFor="let error of validationErrors">
+                            <li>{{error}}</li>
+                        </ng-container>
+                    </ul>
+                </div>
+            </ng-container>
 
-    <ng-container *ngIf="validationErrors">
-        <div class="row mt-2">
-            <ul class="text-danger">
-                <ng-container *ngFor="let error of validationErrors">
-                    <li>{{ error }}</li>
-                </ng-container>
-            </ul>
-        </div>
-    </ng-container>
+            <div class="mb-2">
+                <label class="form-label">Tên đăng nhập</label>
+                <input type="text" class="form-control" name="userName" [(ngModel)]="registerUserDto.userName" />
+            </div>
 
-    <div class="mb-3">
-        <label class="form-label">Tên đăng nhập</label>
-        <input type="text" class="form-control" name="userName" [(ngModel)]="registerUserDto.userName" />
+            <div class="mb-2">
+                <label class="form-label">Email</label>
+                <input type="email" class="form-control" name="email" [(ngModel)]="registerUserDto.email" />
+            </div>
+
+            <div class="mb-2">
+                <label class="form-label">Số điện thoại</label>
+                <input type="tel" class="form-control" name="phoneNumber" [(ngModel)]="registerUserDto.phoneNumber" />
+            </div>
+
+            <div class="mb-2">
+                <label class="form-label">Ngày sinh</label>
+                <input type="datetime" class="form-control" name="dateOfBirth"
+                    [(ngModel)]="registerUserDto.dateOfBirth" />
+            </div>
+
+            <div class="mb-2">
+                <label class="form-label">Giới tính</label>
+                <input type="text" class="form-control" name="gender" [(ngModel)]="registerUserDto.gender" />
+            </div>
+
+            <div class="mb-2">
+                <label class="form-label">Mật khẩu</label>
+                <input type="password" class="form-control" name="password"
+                    [(ngModel)]="registerUserDto.password" />
+            </div>
+
+            <div class="mb-2 text-center">
+                <button class="btn btn-success me-2" type="submit">Đăng ký</button>
+                <button class="btn btn-danger" type="button" routerLink="/">Hủy</button>
+            </div>
+            <div class="text-center">
+                <p>Đã có tài khoản? <a class="text-info" routerLink="/login">Đăng nhập</a> ngay!</p>
+            </div>
+        </form>
     </div>
-
-    <div class="mb-3">
-        <label class="form-label">Email</label>
-        <input type="email" class="form-control" name="email" [(ngModel)]="registerUserDto.email" />
-    </div>
-
-    <div class="mb-3">
-        <label class="form-label">Số điện thoại</label>
-        <input type="tel" class="form-control" name="phoneNumber" [(ngModel)]="registerUserDto.phoneNumber" />
-    </div>
-
-    <div class="mb-3">
-        <label class="form-label">Ngày sinh</label>
-        <input type="datetime" class="form-control" name="dateOfBirth" [(ngModel)]="registerUserDto.dateOfBirth" />
-    </div>
-
-    <div class="mb-3">
-        <label class="form-label">Giới tính</label>
-        <input type="text" class="form-control" name="gender" [(ngModel)]="registerUserDto.gender" />
-    </div>
-
-    <div class="mb-3">
-        <label class="form-label">Mật khẩu</label>
-        <input type="password" class="form-control" name="password" [(ngModel)]="registerUserDto.password" />
-    </div>
-
-    <div class="mb-3 text-center">
-        <button class="btn btn-success me-2" type="submit">Đăng ký</button>
-        <button class="btn btn-danger" type="button" (click)="cancel()">Hủy</button>
-    </div>
-</form>
+</div>
