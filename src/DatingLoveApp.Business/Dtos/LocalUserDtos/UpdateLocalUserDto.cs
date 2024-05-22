@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-
-namespace DatingLoveApp.Business.Dtos.LocalUserDtos;
+﻿namespace DatingLoveApp.Business.Dtos.LocalUserDtos;
 
 public class UpdateLocalUserDto
 {
@@ -10,13 +8,23 @@ public class UpdateLocalUserDto
 
     public string? LastName { get; set; }
 
-    public DateTime? DateOfBirth { get; set; }
+    public DateTime DateOfBirth { get; set; }
 
     public string UserName { get; set; } = null!;
 
     public string Email { get; set; } = null!;
 
     public string PhoneNumber { get; set; } = null!;
+
+    public string Gender { get; set; } = null!;
+
+    public string Nickname { get; set; } = null!;
+
+    public string? Introduction { get; set; }
+
+    public string? Interest { get; set; }
+
+    public string? IdealType { get; set; }
 
     public string? Address { get; set; }
 
@@ -27,6 +35,4 @@ public class UpdateLocalUserDto
     public string? City { get; set; }
 
     public string? Role { get; set; }
-
-    public IFormFile? ImageFile { get; set; }
 }

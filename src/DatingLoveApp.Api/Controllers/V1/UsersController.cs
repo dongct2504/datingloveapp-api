@@ -1,6 +1,7 @@
 ﻿using Asp.Versioning;
 using DatingLoveApp.Business.Dtos;
 using DatingLoveApp.Business.Dtos.LocalUserDtos;
+using DatingLoveApp.Business.Dtos.PictureDtos;
 using DatingLoveApp.Business.Interfaces;
 using FluentResults;
 using FluentValidation;
@@ -29,13 +30,12 @@ public class UsersController : ApiController
         return Ok(await _userService.GetAllAsync(page));
     }
 
-    [HttpGet("{id:guid}")]
+    [HttpGet("{id:guid}", Name = "GetById")]
     [ProducesResponseType(typeof(LocalUserDetailDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById(Guid id)
     {
         Result<LocalUserDetailDto> result = await _userService.GetByIdAsync(id);
-        //Result<LocalUserDetailDto> result = await _userService.GetByIdAllAsync(id);
         if (result.IsFailed)
         {
             return Problem(result.Errors);
@@ -58,13 +58,13 @@ public class UsersController : ApiController
         return Ok(result.Value);
     }
 
-    [HttpPut]
+    [HttpPut("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Update(
         Guid id,
-        [FromForm] UpdateLocalUserDto request,
+        [FromBody] UpdateLocalUserDto request,
         [FromServices] IValidator<UpdateLocalUserDto> validator)
     {
         if (id != request.LocalUserId)
@@ -85,6 +85,21 @@ public class UsersController : ApiController
         }
 
         return NoContent();
+    }
+
+    [HttpPost("upload-picture/{id:guid}")]
+    public async Task<IActionResult> UploadPicture(Guid id, IFormFile imageFile)
+    {
+        Result<PictureDto> result = await _userService.UploadPictureAsync(id, imageFile);
+        if (result.IsFailed)
+        {
+            return Problem(result.Errors);
+        }
+
+        return CreatedAtRoute(
+            nameof(GetById),
+            new { id },
+            result.Value);
     }
 
     [HttpDelete("{id:guid}")]

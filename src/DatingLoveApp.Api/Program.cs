@@ -1,8 +1,6 @@
 using Asp.Versioning;
 using DatingLoveApp.Api.Middleware;
-using DatingLoveApp.Api.Services;
 using DatingLoveApp.Business;
-using DatingLoveApp.Business.Interfaces;
 using DatingLoveApp.DataAccess;
 using DatingLoveApp.DataAccess.Data;
 using Microsoft.Data.SqlClient;
@@ -77,7 +75,6 @@ var builder = WebApplication.CreateBuilder(args);
         options.UseSqlServer(sqlConnectionStringBuilder.ConnectionString));
 
     // register dependencies in other players
-    builder.Services.AddSingleton<IFileStorageService, FileStorageService>();
     builder.Services
         .AddBusiness()
         .AddDataAccess(builder.Configuration);

@@ -7,6 +7,8 @@ public static class ValidateForRequest
 {
     public static bool BeValidPhoneNumber(string phoneNumber)
     {
+        phoneNumber = phoneNumber.Trim();
+
         Regex regex = new Regex(@"^\d{6,15}$");
         return regex.IsMatch(phoneNumber);
     }

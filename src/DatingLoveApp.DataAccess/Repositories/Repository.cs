@@ -72,6 +72,11 @@ public class Repository<T> : IRepository<T> where T : class
         await _dbContext.SaveChangesAsync();
     }
 
+    public async Task SaveAllAsync()
+    {
+        await _dbContext.SaveChangesAsync();
+    }
+
     private IQueryable<T> BuildQuery(QueryOptions<T> options, bool asNoTracking)
     {
         IQueryable<T> query = _dbSet; // ex: _context.Books;

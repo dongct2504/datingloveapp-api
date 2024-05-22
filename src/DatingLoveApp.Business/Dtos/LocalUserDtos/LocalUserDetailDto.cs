@@ -12,17 +12,21 @@ public class LocalUserDetailDto
 
     public string UserName { get; set; } = null!;
 
-    public int Age { get; set; }
+    public string Email { get; set; } = null!;
+
+    public string PhoneNumber { get; set; } = null!;
+
+    public DateTime DateOfBirth { get; set; }
 
     public string Gender { get; set; } = null!;
 
-    public string? KnownAs { get; set; }
+    public string Nickname { get; set; } = null!;
 
     public string? Introduction { get; set; }
 
     public string? Interest { get; set; }
 
-    public string? LookingFor { get; set; }
+    public string? IdealType { get; set; }
 
     public string? ProfilePictureUrl { get; set; }
 

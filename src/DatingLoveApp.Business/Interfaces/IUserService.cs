@@ -1,6 +1,8 @@
 ﻿using DatingLoveApp.Business.Dtos;
 using DatingLoveApp.Business.Dtos.LocalUserDtos;
+using DatingLoveApp.Business.Dtos.PictureDtos;
 using FluentResults;
+using Microsoft.AspNetCore.Http;
 
 namespace DatingLoveApp.Business.Interfaces;
 
@@ -13,6 +15,8 @@ public interface IUserService
     Task<Result<LocalUserDetailDto>> GetByUsernameAsync(string username);
 
     Task<Result> UpdateAsync(UpdateLocalUserDto userDto);
+
+    Task<Result<PictureDto>> UploadPictureAsync(Guid id, IFormFile imageFile);
 
     Task<Result> RemoveAsync(Guid id);
 }

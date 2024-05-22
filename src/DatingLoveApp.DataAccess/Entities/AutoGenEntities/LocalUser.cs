@@ -38,13 +38,13 @@ namespace DatingLoveApp.DataAccess.Entities
         [Unicode(false)]
         public string Gender { get; set; } = null!;
         [StringLength(50)]
-        public string? KnownAs { get; set; }
+        public string Nickname { get; set; } = null!;
         [StringLength(256)]
         public string? Introduction { get; set; }
         [StringLength(128)]
         public string? Interest { get; set; }
         [StringLength(128)]
-        public string? LookingFor { get; set; }
+        public string? IdealType { get; set; }
         [Column(TypeName = "datetime")]
         public DateTime LastActive { get; set; }
         [Column(TypeName = "datetime")]

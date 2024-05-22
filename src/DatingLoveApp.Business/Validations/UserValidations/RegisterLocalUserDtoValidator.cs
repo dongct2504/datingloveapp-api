@@ -11,6 +11,10 @@ public class RegisterLocalUserDtoValidator : AbstractValidator<RegisterLocalUser
             .NotEmpty()
             .MaximumLength(50);
 
+        RuleFor(x => x.Nickname)
+            .NotEmpty()
+            .MaximumLength(50);
+
         RuleFor(x => x.Email)
             .NotEmpty()
             .MaximumLength(128)

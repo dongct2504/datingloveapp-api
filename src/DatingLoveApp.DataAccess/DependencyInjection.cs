@@ -24,6 +24,10 @@ public static class DependencyInjection
 
         services.AddSingleton<ICacheService, CacheService>();
 
+        // register image service
+        services.Configure<CloudinarySettings>(configuration.GetSection(CloudinarySettings.SectionName));
+        services.AddScoped<IFileStorageService, FileStorageService>();
+
         services.AddAuth(configuration);
 
         services.AddScoped<IUserRepository, UserRepository>();

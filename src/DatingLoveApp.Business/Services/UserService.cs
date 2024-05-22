@@ -1,15 +1,19 @@
-﻿using DatingLoveApp.Business.Common;
+﻿using CloudinaryDotNet.Actions;
+using DatingLoveApp.Business.Common;
 using DatingLoveApp.Business.Common.Constants;
 using DatingLoveApp.Business.Common.Errors;
 using DatingLoveApp.Business.Dtos;
 using DatingLoveApp.Business.Dtos.LocalUserDtos;
+using DatingLoveApp.Business.Dtos.PictureDtos;
 using DatingLoveApp.Business.Interfaces;
 using DatingLoveApp.DataAccess.Data;
 using DatingLoveApp.DataAccess.Entities;
+using DatingLoveApp.DataAccess.Extensions;
 using DatingLoveApp.DataAccess.Interfaces;
 using FluentResults;
 using Mapster;
 using MapsterMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 
@@ -137,16 +141,64 @@ public class UserService : IUserService
         user.Role ??= RoleConstants.User;
         user.UpdatedAt = DateTime.Now;
 
-        await _userRepository.UpdateAsync(user);
+        await _userRepository.SaveAllAsync();
 
         await _cacheService.RemoveAsync($"{CacheConstants.User}-{user.LocalUserId}");
 
         return Result.Ok();
     }
 
+    public async Task<Result<PictureDto>> UploadPictureAsync(Guid id, IFormFile imageFile)
+    {
+        LocalUser? user = await _userRepository.GetAsync(new QueryOptions<LocalUser>
+        {
+            SetIncludes = "Pictures",
+            Where = u => u.LocalUserId == id
+        });
+        if (user == null)
+        {
+            string message = "User not found.";
+            Log.Warning($"{nameof(GetByIdAsync)} - {message} - {typeof(UserService)}");
+            return Result.Fail(new NotFoundError(message));
+        }
+
+        UploadResult uploadResult = await _fileStorageService.UploadImageAsync(imageFile,
+            UploadPath.UserImageUploadPath + user.UserName);
+        if (uploadResult.Error != null)
+        {
+            string message = uploadResult.Error.Message;
+            Log.Warning($"{nameof(GetByIdAsync)} - {message} - {typeof(UserService)}");
+            return Result.Fail(new BadRequestError(message));
+        }
+
+        Picture picture = new Picture()
+        {
+            PictureId = Guid.NewGuid(),
+            ImageUrl = uploadResult.SecureUrl.AbsoluteUri,
+            PublicId = uploadResult.PublicId,
+            CreatedAt = DateTime.Now,
+            UpdatedAt = DateTime.Now
+        };
+
+        if (user.Pictures.Count == 0)
+        {
+            picture.IsMain = true;
+        }
+
+        user.Pictures.Add(picture);
+
+        await _userRepository.SaveAllAsync();
+
+        return _mapper.Map<PictureDto>(picture);
+    }
+
     public async Task<Result> RemoveAsync(Guid id)
     {
-        LocalUser? user = await _userRepository.GetAsync(id);
+        LocalUser? user = await _userRepository.GetAsync(new QueryOptions<LocalUser>
+        {
+            SetIncludes = "Pictures",
+            Where = u => u.LocalUserId == id
+        });
         if (user == null)
         {
             string message = "User not found.";
@@ -155,6 +207,10 @@ public class UserService : IUserService
         }
 
         await _userRepository.RemoveAsync(user);
+
+        IEnumerable<Task> tasks = user.Pictures
+            .Select(p => _fileStorageService.RemoveImageAsync(p.PublicId));
+        await Task.WhenAll(tasks);
 
         await _cacheService.RemoveAsync($"{CacheConstants.User}-{user.LocalUserId}");
 
