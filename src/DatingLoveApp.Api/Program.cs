@@ -12,6 +12,8 @@ var builder = WebApplication.CreateBuilder(args);
 {
     // Add services to the container.
 
+    builder.Services.AddCors();
+
     builder.Services.AddControllers();
 
     builder.Services.AddEndpointsApiExplorer();
@@ -91,8 +93,6 @@ var builder = WebApplication.CreateBuilder(args);
         options.SubstituteApiVersionInUrl = true;
         options.AddApiVersionParametersWhenVersionNeutral = true;
     });
-
-    builder.Services.AddCors();
 }
 
 var app = builder.Build();
@@ -116,9 +116,10 @@ var app = builder.Build();
 
     app.UseSerilogRequestLogging();
 
-    app.UseCors(policy => policy.AllowAnyHeader()
+    app.UseCors(policy => policy
+        .AllowAnyHeader()
         .AllowAnyMethod()
-        .WithOrigins("http://localhost:4200"));
+        .WithOrigins("http://localhost:4200", "http://datinglove.vutiendat3601.io.vn"));
 
     app.UseAuthentication();
     app.UseAuthorization();

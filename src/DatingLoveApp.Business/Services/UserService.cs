@@ -192,6 +192,36 @@ public class UserService : IUserService
         return _mapper.Map<PictureDto>(picture);
     }
 
+    public async Task<Result> RemovePictureAsync(Guid userId, Guid pictureId)
+    {
+        LocalUser? user = await _userRepository.GetAsync(new QueryOptions<LocalUser>
+        {
+            SetIncludes = "Pictures",
+            Where = u => u.LocalUserId == userId
+        });
+        if (user == null)
+        {
+            string message = "User not found.";
+            Log.Warning($"{nameof(GetByIdAsync)} - {message} - {typeof(UserService)}");
+            return Result.Fail(new NotFoundError(message));
+        }
+
+        Picture? picture = user.Pictures.SingleOrDefault(p => p.PictureId == pictureId);
+        if (picture == null)
+        {
+            string message = "Picture not found.";
+            Log.Warning($"{nameof(GetByIdAsync)} - {message} - {typeof(UserService)}");
+            return Result.Fail(new NotFoundError(message));
+        }
+
+        user.Pictures.Remove(picture);
+        await _userRepository.SaveAllAsync();
+
+        await _fileStorageService.RemoveImageAsync(picture.PublicId);
+
+        return Result.Ok();
+    }
+
     public async Task<Result> RemoveAsync(Guid id)
     {
         LocalUser? user = await _userRepository.GetAsync(new QueryOptions<LocalUser>

@@ -88,6 +88,8 @@ public class UsersController : ApiController
     }
 
     [HttpPost("upload-picture/{id:guid}")]
+    [ProducesResponseType(typeof(PictureDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UploadPicture(Guid id, IFormFile imageFile)
     {
         Result<PictureDto> result = await _userService.UploadPictureAsync(id, imageFile);
@@ -100,6 +102,20 @@ public class UsersController : ApiController
             nameof(GetById),
             new { id },
             result.Value);
+    }
+
+    [HttpDelete("remove-picture/{userId:guid}/{pictureId}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> RemovePicture(Guid id, Guid pictureId)
+    {
+        Result result = await _userService.RemovePictureAsync(id, pictureId);
+        if (result.IsFailed)
+        {
+            return Problem(result.Errors);
+        }
+
+        return NoContent();
     }
 
     [HttpDelete("{id:guid}")]
