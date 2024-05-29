@@ -85,7 +85,7 @@ public class UserService : IUserService
             .Where(u => u.LocalUserId == id)
             .AsNoTracking()
             .ProjectToType<LocalUserDetailDto>()
-            .SingleOrDefaultAsync();
+            .FirstOrDefaultAsync();
 
         if (userDetailDto == null)
         {
@@ -113,7 +113,7 @@ public class UserService : IUserService
             .Where(u => u.UserName == username)
             .AsNoTracking()
             .ProjectToType<LocalUserDetailDto>()
-            .SingleOrDefaultAsync();
+            .FirstOrDefaultAsync();
 
         if (userDetailDto == null)
         {
@@ -192,6 +192,48 @@ public class UserService : IUserService
         return _mapper.Map<PictureDto>(picture);
     }
 
+    public async Task<Result> SetMainPictureAsync(Guid id, Guid pictureId)
+    {
+        LocalUser? user = await _userRepository.GetAsync(new QueryOptions<LocalUser>
+        {
+            SetIncludes = "Pictures",
+            Where = u => u.LocalUserId == id
+        });
+        if (user == null)
+        {
+            string message = "User not found.";
+            Log.Warning($"{nameof(GetByIdAsync)} - {message} - {typeof(UserService)}");
+            return Result.Fail(new NotFoundError(message));
+        }
+
+        Picture? picture = user.Pictures.FirstOrDefault(p => p.PictureId == pictureId);
+        if (picture == null)
+        {
+            string message = "Picture not found.";
+            Log.Warning($"{nameof(GetByIdAsync)} - {message} - {typeof(UserService)}");
+            return Result.Fail(new NotFoundError(message));
+        }
+
+        if (picture.IsMain)
+        {
+            string message = "This picture is already your main picture.";
+            Log.Warning($"{nameof(GetByIdAsync)} - {message} - {typeof(UserService)}");
+            return Result.Fail(new BadRequestError(message));
+        }
+
+        Picture? currentMain = user.Pictures.FirstOrDefault(p => p.IsMain);
+        if (currentMain != null)
+        {
+            currentMain.IsMain = false;
+        }
+
+        picture.IsMain = true;
+
+        await _userRepository.SaveAllAsync();
+
+        return Result.Ok();
+    }
+
     public async Task<Result> RemovePictureAsync(Guid userId, Guid pictureId)
     {
         LocalUser? user = await _userRepository.GetAsync(new QueryOptions<LocalUser>
@@ -206,7 +248,7 @@ public class UserService : IUserService
             return Result.Fail(new NotFoundError(message));
         }
 
-        Picture? picture = user.Pictures.SingleOrDefault(p => p.PictureId == pictureId);
+        Picture? picture = user.Pictures.FirstOrDefault(p => p.PictureId == pictureId);
         if (picture == null)
         {
             string message = "Picture not found.";
@@ -214,10 +256,23 @@ public class UserService : IUserService
             return Result.Fail(new NotFoundError(message));
         }
 
+        if (picture.IsMain)
+        {
+            string message = "You can't delete your main picture.";
+            Log.Warning($"{nameof(GetByIdAsync)} - {message} - {typeof(UserService)}");
+            return Result.Fail(new BadRequestError(message));
+        }
+
+        DeletionResult deletionResult = await _fileStorageService.RemoveImageAsync(picture.PublicId);
+        if (deletionResult.Error != null)
+        {
+            string message = deletionResult.Error.Message;
+            Log.Warning($"{nameof(GetByIdAsync)} - {message} - {typeof(UserService)}");
+            return Result.Fail(new BadRequestError(message));
+        }
+
         user.Pictures.Remove(picture);
         await _userRepository.SaveAllAsync();
-
-        await _fileStorageService.RemoveImageAsync(picture.PublicId);
 
         return Result.Ok();
     }
@@ -236,11 +291,11 @@ public class UserService : IUserService
             return Result.Fail(new NotFoundError(message));
         }
 
-        await _userRepository.RemoveAsync(user);
-
         IEnumerable<Task> tasks = user.Pictures
             .Select(p => _fileStorageService.RemoveImageAsync(p.PublicId));
         await Task.WhenAll(tasks);
+
+        await _userRepository.RemoveAsync(user);
 
         await _cacheService.RemoveAsync($"{CacheConstants.User}-{user.LocalUserId}");
 

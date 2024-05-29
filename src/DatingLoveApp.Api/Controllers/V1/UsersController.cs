@@ -104,7 +104,22 @@ public class UsersController : ApiController
             result.Value);
     }
 
-    [HttpDelete("remove-picture/{userId:guid}/{pictureId}")]
+    [HttpPut("set-main-picture/{id:guid}/{pictureId:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> SetMainPicture(Guid id, Guid pictureId)
+    {
+        Result result = await _userService.SetMainPictureAsync(id, pictureId);
+        if (result.IsFailed)
+        {
+            return Problem(result.Errors);
+        }
+
+        return NoContent();
+    }
+
+    [HttpDelete("remove-picture/{id:guid}/{pictureId:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> RemovePicture(Guid id, Guid pictureId)

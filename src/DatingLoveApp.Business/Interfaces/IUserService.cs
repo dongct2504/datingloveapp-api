@@ -16,9 +16,11 @@ public interface IUserService
 
     Task<Result> UpdateAsync(UpdateLocalUserDto userDto);
 
-    Task<Result> RemovePictureAsync(Guid id, Guid publicId);
-
     Task<Result<PictureDto>> UploadPictureAsync(Guid id, IFormFile imageFile);
+
+    Task<Result> SetMainPictureAsync(Guid id, Guid pictureId);
+
+    Task<Result> RemovePictureAsync(Guid id, Guid pictureId);
 
     Task<Result> RemoveAsync(Guid id);
 }

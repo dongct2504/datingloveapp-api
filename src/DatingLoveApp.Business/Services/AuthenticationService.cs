@@ -63,6 +63,7 @@ public class AuthenticationService : IAuthenticationService
     {
         LocalUser? user = await _userRepository.GetAsync(new QueryOptions<LocalUser>
         {
+            SetIncludes = "Pictures",
             Where = u => u.UserName == userDto.UserName
         }, asNoTracking: true);
         if (user == null)
