@@ -23,8 +23,7 @@ export class AuthenticateService {
       map(response => {
         const authenticationDto = response as AuthenticationDto;
         if (authenticationDto) {
-          localStorage.setItem('authenUser', JSON.stringify(authenticationDto));
-          this.currentAuthenUserSource.next(authenticationDto);
+          this.setCurrentAuthenUser(authenticationDto);
         }
       })
     );
@@ -35,8 +34,7 @@ export class AuthenticateService {
       map(response => {
         const authenticationDto = response as AuthenticationDto;
         if (authenticationDto) {
-          localStorage.setItem('authenUser', JSON.stringify(authenticationDto));
-          this.currentAuthenUserSource.next(authenticationDto);
+          this.setCurrentAuthenUser(authenticationDto);
         }
       })
     )
@@ -53,6 +51,11 @@ export class AuthenticateService {
       const authenUser: AuthenticationDto = JSON.parse(authenUserJson);
       this.currentAuthenUserSource.next(authenUser);
     }
+  }
+
+  setCurrentAuthenUser(authenticationDto: AuthenticationDto) {
+    localStorage.setItem('authenUser', JSON.stringify(authenticationDto));
+    this.currentAuthenUserSource.next(authenticationDto);
   }
 
   isLoggedGuard(): boolean {

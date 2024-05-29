@@ -42,6 +42,9 @@ export class ErrorInterceptor implements HttpInterceptor {
             case 404:
               this.router.navigateByUrl('/not-found');
               break;
+            case 409:
+              this.toastr.error(err.error.detail);
+              break;
             default:
               const navigationExtras: NavigationExtras = { state: { error: err.error } };
               this.router.navigateByUrl('/internal-server-error', navigationExtras);

@@ -34,4 +34,12 @@ export class UserService {
   update(id: string, userDetail: LocalUserDetailDto) {
     return this.http.put(this.baseUrl + `users/${id}`, userDetail);
   }
+
+  setMainPicture(id: string, pictureId: string) {
+    return this.http.put(this.baseUrl + `users/set-main-picture/${id}/${pictureId}`, {});
+  }
+
+  removePicture(id: string, pictureId: string) {
+    return this.http.delete(this.baseUrl + `users/remove-picture/${id}/${pictureId}`);
+  }
 }

@@ -22,6 +22,7 @@ import { MemberEditComponent } from './members/member-edit/member-edit.component
 import { LoginComponent } from './login/login.component';
 import { AgePipe } from './_pipes/age.pipe';
 import { LoadingInterceptor } from './_interceptors/loading.interceptor';
+import { PictureEditComponent } from './members/picture-edit/picture-edit.component';
 
 @NgModule({
   declarations: [
@@ -37,7 +38,8 @@ import { LoadingInterceptor } from './_interceptors/loading.interceptor';
     InternalServerErrorComponent,
     MemberEditComponent,
     LoginComponent,
-    AgePipe
+    AgePipe,
+    PictureEditComponent
   ],
   imports: [
     BrowserModule,
