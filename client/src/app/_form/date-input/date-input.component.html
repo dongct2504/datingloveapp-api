@@ -1,0 +1,15 @@
+<div class="mb-2">
+    <label class="form-label">{{label}}</label>
+    <input 
+        type="text"
+        class="form-control"
+        [formControl]="$any(ngControl).control"
+        bsDatepicker
+        [bsConfig]="bsConfig"
+        [maxDate]="maxDate" />
+    <div 
+        class="invalid-feedback"
+        *ngIf="ngControl.control?.errors?.['required']">
+        Vui lòng nhập {{label}}.
+    </div>
+</div>
