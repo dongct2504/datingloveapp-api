@@ -5,7 +5,7 @@ namespace DatingLoveApp.Business.Interfaces;
 
 public interface IAuthenticationService
 {
-    Task<Result<AuthenticationDto>> RegisterAsync(RegisterLocalUserDto userDto);
+    Task<Result<AuthenticationDto>> RegisterAsync(RegisterAppUserDto userDto);
 
-    Task<Result<AuthenticationDto>> LoginAsync(LoginLocalUserDto userDto);
+    Task<Result<AuthenticationDto>> LoginAsync(LoginAppUserDto userDto);
 }

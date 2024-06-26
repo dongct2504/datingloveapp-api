@@ -2,9 +2,9 @@
 
 namespace DatingLoveApp.Business.Dtos.LocalUserDtos;
 
-public class LocalUserDetailDto
+public class AppUserDetailDto
 {
-    public Guid LocalUserId { get; set; }
+    public string Id { get; set; } = null!;
 
     public string? FirstName { get; set; }
 

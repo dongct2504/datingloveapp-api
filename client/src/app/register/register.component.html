@@ -1,6 +1,6 @@
 <div class="row justify-content-center">
     <div class="col-lg-4 col-md-6">
-        <form #registerForm="ngForm" (ngSubmit)="register()" autocomplete="off">
+        <form [formGroup]="registerForm" (ngSubmit)="register()" autocomplete="off">
             <h2 class="text-center">Đăng ký</h2>
             <hr>
             <ng-container *ngIf="validationErrors">
@@ -13,45 +13,68 @@
                 </div>
             </ng-container>
 
-            <div class="mb-2">
-                <label class="form-label">Tên đăng nhập</label>
-                <input type="text" class="form-control" name="userName" [(ngModel)]="registerUserDto.userName" />
-            </div>
+            <app-text-input
+                [label]="'Tên đăng nhập'"
+                [formControl]="$any(registerForm).controls['username']">
+            </app-text-input>
+
+            <app-text-input
+                [label]="'Email'"
+                [type]="'email'"
+                [formControl]="$any(registerForm).controls['email']">
+            </app-text-input>
+
+            <app-text-input
+                [label]="'Nickname'"
+                [formControl]="$any(registerForm).controls['nickname']">
+            </app-text-input>
+
+            <app-text-input
+                [label]="'số điện thoại'"
+                [type]="'tel'"
+                [formControl]="$any(registerForm).controls['phoneNumber']">
+            </app-text-input>
+
+            <app-date-input
+                [label]="'Ngày sinh'"
+                [maxDate]="maxDate"
+                [formControl]="$any(registerForm).controls['dateOfBirth']">
+            </app-date-input>
 
             <div class="mb-2">
-                <label class="form-label">Email</label>
-                <input type="email" class="form-control" name="email" [(ngModel)]="registerUserDto.email" />
+                <div>
+                    <label class="form-label">Giới tính</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" value="male" formControlName="gender">
+                    <label class="form-check-label">Nam</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" value="female" formControlName="gender">
+                    <label class="form-check-label">Nữ</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" value="unknown" formControlName="gender">
+                    <label class="form-check-label">Không xác định</label>
+                </div>
             </div>
 
-            <div class="mb-2">
-                <label class="form-label">Nickname</label>
-                <input type="text" class="form-control" name="nickname" [(ngModel)]="registerUserDto.nickname" />
-            </div>
+            <app-text-input
+                [label]="'Mật khẩu'"
+                [type]="'password'"
+                [formControl]="$any(registerForm).controls['password']">
+            </app-text-input>
 
-            <div class="mb-2">
-                <label class="form-label">Số điện thoại</label>
-                <input type="tel" class="form-control" name="phoneNumber" [(ngModel)]="registerUserDto.phoneNumber" />
-            </div>
-
-            <div class="mb-2">
-                <label class="form-label">Ngày sinh</label>
-                <input type="datetime" class="form-control" name="dateOfBirth"
-                    [(ngModel)]="registerUserDto.dateOfBirth" />
-            </div>
-
-            <div class="mb-2">
-                <label class="form-label">Giới tính</label>
-                <input type="text" class="form-control" name="gender" [(ngModel)]="registerUserDto.gender" />
-            </div>
-
-            <div class="mb-2">
-                <label class="form-label">Mật khẩu</label>
-                <input type="password" class="form-control" name="password"
-                    [(ngModel)]="registerUserDto.password" />
-            </div>
+            <app-text-input
+                [label]="'Nhập lại mật khẩu'"
+                [type]="'password'"
+                [formControl]="$any(registerForm).controls['confirmPassword']">
+            </app-text-input>
 
             <div class="mb-2 text-center">
-                <button class="btn btn-success me-2" type="submit">Đăng ký</button>
+                <button class="btn btn-success me-2" type="submit" [disabled]="registerForm.invalid">
+                    Đăng ký
+                </button>
                 <button class="btn btn-danger" type="button" routerLink="/">Hủy</button>
             </div>
             <div class="text-center">

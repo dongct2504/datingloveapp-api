@@ -1,8 +1,8 @@
 ﻿namespace DatingLoveApp.Business.Dtos.LocalUserDtos;
 
-public class UpdateLocalUserDto
+public class UpdateAppUserDto
 {
-    public Guid LocalUserId { get; set; }
+    public string Id { get; set; } = null!;
 
     public string? FirstName { get; set; }
 

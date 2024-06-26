@@ -5,5 +5,5 @@ export interface PagedList<T> {
     totalPages: number;
     hasNextPage: boolean;
     hasPreviousPage: boolean;
-    items: T[] | null;
+    items: T[];
 }

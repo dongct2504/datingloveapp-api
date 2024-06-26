@@ -2,5 +2,5 @@
 
 public static class PageSizeConstants
 {
-    public const int Default50 = 50;
+    public const int Default30 = 12;
 }

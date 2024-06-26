@@ -18,10 +18,10 @@
 
         <ng-container *ngIf="(authen.currentAuthenUser$ | async) as authenUser">
             <div class="dropdown" dropdown>
-                <img src="{{authenUser.localUserDto?.profilePictureUrl}}"
+                <img src="{{authenUser.localUserDto?.profilePictureUrl || './assets/user.png'}}"
                     alt="{{authenUser.localUserDto?.nickname}}">
                 <a class="dropdown-toggle text-light ms-2" dropdownToggle>
-                    {{ authenUser.localUserDto?.userName | titlecase }}
+                    {{ authenUser.localUserDto?.nickname | titlecase }}
                 </a>
                 <div class="dropdown-menu dropdown-menu-right" *dropdownMenu>
                     <a class="dropdown-item" routerLink="/member/edit">Hồ sơ</a>

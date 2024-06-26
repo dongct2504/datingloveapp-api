@@ -11,7 +11,8 @@ namespace DatingLoveApp.DataAccess.Entities
     {
         [Key]
         public Guid PictureId { get; set; }
-        public Guid LocalUserId { get; set; }
+        [StringLength(450)]
+        public string AppUserId { get; set; } = null!;
         [StringLength(1024)]
         [Unicode(false)]
         public string ImageUrl { get; set; } = null!;
@@ -23,9 +24,5 @@ namespace DatingLoveApp.DataAccess.Entities
         public DateTime CreatedAt { get; set; }
         [Column(TypeName = "datetime")]
         public DateTime UpdatedAt { get; set; }
-
-        [ForeignKey("LocalUserId")]
-        [InverseProperty("Pictures")]
-        public virtual LocalUser? LocalUser { get; set; }
     }
 }

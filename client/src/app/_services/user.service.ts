@@ -1,10 +1,11 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { environment } from 'src/environments/environment.development';
 import { LocalUserDto } from '../_dtos/localUserDtos/localUserDto';
 import { LocalUserDetailDto } from '../_dtos/localUserDtos/localUserDetailDto';
 import { PagedList } from '../_dtos/pagedList';
 import { Observable } from 'rxjs';
+import { UserParams } from '../_dtos/localUserDtos/userParams';
 
 @Injectable({
   providedIn: 'root'
@@ -15,12 +16,10 @@ export class UserService {
   constructor(private http: HttpClient) {
   }
 
-  getAll(page: number = 1): Observable<PagedList<LocalUserDto>> {
-    return this.http.get<PagedList<LocalUserDto>>(this.baseUrl + 'users', {
-      params: {
-        page: page.toString()
-      }
-    });
+  getAll(userParams: UserParams): Observable<PagedList<LocalUserDto>> {
+    let params = this.getUserParams(userParams);
+
+    return this.http.get<PagedList<LocalUserDto>>(this.baseUrl + 'users', { params });
   }
 
   getById(id: string): Observable<LocalUserDetailDto> {
@@ -35,11 +34,22 @@ export class UserService {
     return this.http.put(this.baseUrl + `users/${id}`, userDetail);
   }
 
-  setMainPicture(id: string, pictureId: string) {
-    return this.http.put(this.baseUrl + `users/set-main-picture/${id}/${pictureId}`, {});
+  setMainPicture(pictureId: string) {
+    return this.http.put(this.baseUrl + `users/set-main-picture/${pictureId}`, {});
   }
 
-  removePicture(id: string, pictureId: string) {
-    return this.http.delete(this.baseUrl + `users/remove-picture/${id}/${pictureId}`);
+  removePicture(pictureId: string) {
+    return this.http.delete(this.baseUrl + `users/remove-picture/${pictureId}`);
+  }
+
+  private getUserParams(userParams: UserParams) {
+    let params = new HttpParams();
+
+    params = params.append('page', userParams.pageNumber)
+    params = params.append('gender', userParams.gender)
+    params = params.append('minAge', userParams.minAge)
+    params = params.append('maxAge', userParams.maxAge)
+
+    return params;
   }
 }

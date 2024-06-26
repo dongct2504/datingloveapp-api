@@ -2,7 +2,7 @@
 
 public static class GenderConstants
 {
-    public const string Male = "Male";
-    public const string Female = "Female";
-    public const string Unknown = "Unknown";
+    public const string Male = "male";
+    public const string Female = "female";
+    public const string Unknown = "unknown";
 }

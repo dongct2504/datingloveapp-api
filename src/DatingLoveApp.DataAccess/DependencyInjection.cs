@@ -1,9 +1,11 @@
 ﻿using DatingLoveApp.Business.Interfaces;
 using DatingLoveApp.DataAccess.Common;
+using DatingLoveApp.DataAccess.Identity;
 using DatingLoveApp.DataAccess.Interfaces;
 using DatingLoveApp.DataAccess.Repositories;
 using DatingLoveApp.DataAccess.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -28,9 +30,36 @@ public static class DependencyInjection
         services.Configure<CloudinarySettings>(configuration.GetSection(CloudinarySettings.SectionName));
         services.AddScoped<IFileStorageService, FileStorageService>();
 
+        services.AddIdentity();
         services.AddAuth(configuration);
 
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IPictureRepository, PictureRepository>();
+
+        return services;
+    }
+
+    private static IServiceCollection AddIdentity(this IServiceCollection services)
+    {
+        services.AddIdentity<AppUser, IdentityRole>(options =>
+        {
+            // Password settings
+            options.Password.RequireDigit = true;
+            options.Password.RequireLowercase = true;
+            options.Password.RequireUppercase = true;
+            options.Password.RequireNonAlphanumeric = true;
+            options.Password.RequiredLength = 3;
+
+            // User settings
+            options.User.RequireUniqueEmail = true;
+
+            // Sign-in settings
+            //options.SignIn.RequireConfirmedEmail = true;
+        })
+        .AddEntityFrameworkStores<DatingLoveAppIdentityDbContext>()
+        .AddRoleManager<RoleManager<IdentityRole>>()
+        .AddSignInManager<SignInManager<AppUser>>()
+        .AddDefaultTokenProviders();
 
         return services;
     }

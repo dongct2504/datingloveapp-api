@@ -3,11 +3,11 @@ using FluentValidation;
 
 namespace DatingLoveApp.Business.Validations.UserValidations;
 
-public class UpdateLocalUserDtoValidator : AbstractValidator<UpdateLocalUserDto>
+public class UpdateLocalUserDtoValidator : AbstractValidator<UpdateAppUserDto>
 {
     public UpdateLocalUserDtoValidator()
     {
-        RuleFor(x => x.LocalUserId)
+        RuleFor(x => x.Id)
             .NotEmpty();
 
         RuleFor(x => x.UserName)

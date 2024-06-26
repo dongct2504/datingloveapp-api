@@ -30,14 +30,7 @@ export class AuthenticateService {
   }
 
   register(model: RegisterLocalUserDto) {
-    return this.http.post(this.apiUrl + 'authen/register', model).pipe(
-      map(response => {
-        const authenticationDto = response as AuthenticationDto;
-        if (authenticationDto) {
-          this.setCurrentAuthenUser(authenticationDto);
-        }
-      })
-    )
+    return this.http.post(this.apiUrl + 'authen/register', model);
   }
 
   logout() {
@@ -50,7 +43,9 @@ export class AuthenticateService {
     if (authenUserJson) {
       const authenUser: AuthenticationDto = JSON.parse(authenUserJson);
       this.currentAuthenUserSource.next(authenUser);
+      return true;
     }
+    return false;
   }
 
   setCurrentAuthenUser(authenticationDto: AuthenticationDto) {

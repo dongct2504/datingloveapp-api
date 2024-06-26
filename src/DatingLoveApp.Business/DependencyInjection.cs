@@ -17,6 +17,7 @@ public static class DependencyInjection
 
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IAuthenticationService, AuthenticationService>();
+        services.AddScoped<IPictureService, IPictureService>();
 
         return services;
     }

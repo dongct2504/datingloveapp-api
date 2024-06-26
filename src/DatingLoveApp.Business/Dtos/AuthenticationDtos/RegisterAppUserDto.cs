@@ -1,6 +1,6 @@
 ﻿namespace DatingLoveApp.Business.Dtos.AuthenticationDtos;
 
-public class RegisterLocalUserDto
+public class RegisterAppUserDto
 {
     public string UserName { get; set; } = null!;
 

@@ -1,17 +1,17 @@
 <div class="row">
-    <ng-container *ngFor="let user of (pagedList$ | async)?.items">
+    <ng-container *ngFor="let member of members">
         <div class="col-lg-2 col-md-4 col-sm-6">
             <div class="card mb-4">
-                <div class="card-img-wrapper" routerLink="/members/{{user.userName}}">
-                    <img src="{{user.profilePictureUrl  || './assets/user.png'}}"
-                        alt="{{user.nickname}}" class="card-img-top">
+                <div class="card-img-wrapper" routerLink="/members/{{member.userName}}">
+                    <img src="{{member.profilePictureUrl  || './assets/user.png'}}"
+                        alt="{{member.nickname}}" class="card-img-top">
                 </div>
                 <div class="card-body p-0">
                     <div class="mb-2">
-                        <h5 class="card-title text-center mb-1" routerLink="/members/{{user.userName}}">
-                            <i class="fa fa-user me-1"></i>{{user.nickname}}
+                        <h5 class="card-title text-center mb-1" routerLink="/members/{{member.userName}}">
+                            <i class="fa fa-user me-1"></i>{{member.nickname}}
                         </h5>
-                        <p class="card-text text-muted text-center">Địa chỉ: {{user.city}}</p>
+                        <p class="card-text text-muted text-center">Địa chỉ: {{member.city}}</p>
                     </div>
                     <div class="d-flex justify-content-around mb-1">
                         <button class="btn btn-primary"><i class="fa fa-heart"></i></button>
@@ -22,3 +22,17 @@
         </div>
     </ng-container>
 </div>
+
+<ng-container *ngIf="pagination">
+    <pagination
+        [boundaryLinks]="true"
+        [totalItems]="pagination.totalRecords"
+        [itemsPerPage]="pagination.pageSize"
+        [(ngModel)]="pagination.pageNumber"
+        (pageChanged)="pageChanged($event)"
+        previousText="&lsaquo;"
+        nextText="&rsaquo;"
+        firstText="&laquo;"
+        lastText="&raquo;">
+    </pagination>
+</ng-container>

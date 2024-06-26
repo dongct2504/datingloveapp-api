@@ -1,6 +1,6 @@
 <div class="row justify-content-center">
     <div class="col-lg-4 col-md-6">
-        <form #loginForm="ngForm" (ngSubmit)="login()" autocomplete="off">
+        <form [formGroup]="loginForm" (ngSubmit)="login()" autocomplete="off">
             <h2 class="text-center">Đăng nhập</h2>
             <hr>
             <ng-container *ngIf="validationErrors">
@@ -13,20 +13,21 @@
                 </div>
             </ng-container>
 
-            <div class="mb-2">
-                <label class="form-label">Tên đăng nhập</label>
-                <input type="text" name="username" [(ngModel)]="loginLocalUserDto.userName"
-                    class="form-control me-2">
-            </div>
+            <app-text-input
+                [label]="'Tên đăng nhập'"
+                [formControl]="$any(loginForm).controls['username']">
+            </app-text-input>
 
-            <div class="mb-2">
-                <label class="form-label">Mật khẩu</label>
-                <input name="password" [(ngModel)]="loginLocalUserDto.password"
-                    class="form-control me-2" type="password">
-            </div>
+            <app-text-input
+                [label]="'Mật khẩu'"
+                [type]="'password'"
+                [formControl]="$any(loginForm).controls['password']">
+            </app-text-input>
 
             <div class="mb-2 text-center">
-                <button type="submit" class="btn btn-success me-2">Đăng nhập</button>
+                <button type="submit" class="btn btn-success me-2" [disabled]="loginForm.invalid">
+                    Đăng nhập
+                </button>
                 <button class="btn btn-danger" type="button" routerLink="/">Hủy</button>
             </div>
             <div class="text-center">

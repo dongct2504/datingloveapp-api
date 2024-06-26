@@ -2,7 +2,7 @@ import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations'
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -23,6 +23,8 @@ import { LoginComponent } from './login/login.component';
 import { AgePipe } from './_pipes/age.pipe';
 import { LoadingInterceptor } from './_interceptors/loading.interceptor';
 import { PictureEditComponent } from './members/picture-edit/picture-edit.component';
+import { TextInputComponent } from './_form/text-input/text-input.component';
+import { DateInputComponent } from './_form/date-input/date-input.component';
 
 @NgModule({
   declarations: [
@@ -39,7 +41,9 @@ import { PictureEditComponent } from './members/picture-edit/picture-edit.compon
     MemberEditComponent,
     LoginComponent,
     AgePipe,
-    PictureEditComponent
+    PictureEditComponent,
+    TextInputComponent,
+    DateInputComponent
   ],
   imports: [
     BrowserModule,
@@ -47,6 +51,7 @@ import { PictureEditComponent } from './members/picture-edit/picture-edit.compon
     HttpClientModule,
     BrowserAnimationsModule,
     FormsModule,
+    ReactiveFormsModule,
     SharedModule
   ],
   providers: [

@@ -1,7 +1,5 @@
 ﻿using DatingLoveApp.Business.Dtos.LocalUserDtos;
-using DatingLoveApp.Business.Dtos.PictureDtos;
-using DatingLoveApp.DataAccess.Entities;
-using DatingLoveApp.DataAccess.Extensions;
+using DatingLoveApp.DataAccess.Identity;
 using Mapster;
 
 namespace DatingLoveApp.Business.Common.Mapping;
@@ -10,14 +8,10 @@ public class UserMappingConfig : IRegister
 {
     public void Register(TypeAdapterConfig config)
     {
-        config.NewConfig<LocalUser, LocalUserDto>()
-            .Map(dest => dest.ProfilePictureUrl, src => src.Pictures.GetMainProfilePictureUrl());
+        config.NewConfig<AppUser, AppUserDto>();
 
-        config.NewConfig<LocalUser, LocalUserDetailDto>()
-            .Map(dest => dest.ProfilePictureUrl, src => src.Pictures.GetMainProfilePictureUrl());
+        config.NewConfig<AppUser, AppUserDetailDto>();
 
-        config.NewConfig<Picture, PictureDto>();
-
-        config.NewConfig<UpdateLocalUserDto, LocalUser>();
+        config.NewConfig<UpdateAppUserDto, AppUser>();
     }
 }

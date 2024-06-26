@@ -9,11 +9,11 @@ public class AuthenticationMappingConfig : IRegister
 {
     public void Register(TypeAdapterConfig config)
     {
-        config.NewConfig<RegisterLocalUserDto, LocalUser>();
+        config.NewConfig<RegisterAppUserDto, LocalUser>();
 
         config.NewConfig<(LocalUser localUser, string token), AuthenticationDto>()
-            .Map(dest => dest.LocalUserDto, src => src.localUser)
-            .Map(dest => dest.LocalUserDto.ProfilePictureUrl, 
+            .Map(dest => dest.AppUserDto, src => src.localUser)
+            .Map(dest => dest.AppUserDto.ProfilePictureUrl, 
                 src => src.localUser.Pictures.GetMainProfilePictureUrl())
             .Map(dest => dest.Token, src => src.token);
     }

@@ -27,16 +27,16 @@ export class PictureEditComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.initializeUploader();
+    this.initUploader();
   }
 
   fileOverBase(e: any) {
     this.hasBaseDropZoneOver = e;
   }
 
-  initializeUploader() {
+  initUploader() {
     this.uploader = new FileUploader({
-      url: this.baseUrl + `users/upload-picture/${this.authenUser?.localUserDto?.localUserId}`,
+      url: this.baseUrl + 'users/upload-picture',
       authToken: 'Bearer ' + this.authenUser?.token,
       isHTML5: true,
       allowedFileType: ['image'],
@@ -55,16 +55,24 @@ export class PictureEditComponent implements OnInit {
 
     this.uploader.onSuccessItem = (item, response, status, headers) => {
       if (response) {
-        const picture = JSON.parse(response);
+        const picture: PictureDto = JSON.parse(response);
         this.member.pictures?.push(picture);
+
+        if (picture.isMain) {
+          if (this.authenUser?.localUserDto) {
+            this.authenUser.localUserDto.profilePictureUrl = picture.imageUrl;
+            this.authenService.setCurrentAuthenUser(this.authenUser);
+          }
+          this.member.profilePictureUrl = picture.imageUrl;
+        }
       }
     }
   }
 
   setMainPicture(picture: PictureDto) {
-    this.userService.setMainPicture(this.member.localUserId, picture.pictureId).subscribe(() => {
+    this.userService.setMainPicture(picture.pictureId).subscribe(() => {
       // set main picture in navbar
-      if (this.authenUser?.localUserDto?.profilePictureUrl) {
+      if (this.authenUser?.localUserDto) {
         this.authenUser.localUserDto.profilePictureUrl = picture.imageUrl;
         this.authenService.setCurrentAuthenUser(this.authenUser);
       }
@@ -82,7 +90,7 @@ export class PictureEditComponent implements OnInit {
   }
 
   removePicture(picture: PictureDto) {
-    this.userService.removePicture(this.member.localUserId, picture.pictureId).subscribe(() => {
+    this.userService.removePicture(picture.pictureId).subscribe(() => {
       if (this.member.pictures) {
         this.member.pictures = this.member.pictures.filter(p => p.pictureId !== picture.pictureId);
       }

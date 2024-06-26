@@ -24,8 +24,8 @@ public class AuthenticationController : ApiController
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> Register(
-        [FromBody] RegisterLocalUserDto request,
-        [FromServices] IValidator<RegisterLocalUserDto> validator)
+        [FromBody] RegisterAppUserDto request,
+        [FromServices] IValidator<RegisterAppUserDto> validator)
     {
         ValidationResult validationResult = await validator.ValidateAsync(request);
         if (!validationResult.IsValid)
@@ -46,8 +46,8 @@ public class AuthenticationController : ApiController
     [ProducesResponseType(typeof(AuthenticationDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Login(
-        [FromBody] LoginLocalUserDto request,
-        [FromServices] IValidator<LoginLocalUserDto> validator)
+        [FromBody] LoginAppUserDto request,
+        [FromServices] IValidator<LoginAppUserDto> validator)
     {
         ValidationResult validationResult = await validator.ValidateAsync(request);
         if (!validationResult.IsValid)

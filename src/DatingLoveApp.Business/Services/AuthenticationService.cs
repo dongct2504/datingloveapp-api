@@ -30,7 +30,7 @@ public class AuthenticationService : IAuthenticationService
         _cacheService = cacheService;
     }
 
-    public async Task<Result<AuthenticationDto>> RegisterAsync(RegisterLocalUserDto userDto)
+    public async Task<Result<AuthenticationDto>> RegisterAsync(RegisterAppUserDto userDto)
     {
         LocalUser? user = await _userRepository.GetAsync(new QueryOptions<LocalUser>
         {
@@ -59,7 +59,7 @@ public class AuthenticationService : IAuthenticationService
         return _mapper.Map<AuthenticationDto>((user, token));
     }
 
-    public async Task<Result<AuthenticationDto>> LoginAsync(LoginLocalUserDto userDto)
+    public async Task<Result<AuthenticationDto>> LoginAsync(LoginAppUserDto userDto)
     {
         LocalUser? user = await _userRepository.GetAsync(new QueryOptions<LocalUser>
         {

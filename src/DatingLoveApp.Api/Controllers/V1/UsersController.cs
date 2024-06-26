@@ -1,8 +1,8 @@
 ﻿using Asp.Versioning;
 using DatingLoveApp.Business.Dtos;
 using DatingLoveApp.Business.Dtos.LocalUserDtos;
-using DatingLoveApp.Business.Dtos.PictureDtos;
 using DatingLoveApp.Business.Interfaces;
+using DatingLoveApp.DataAccess.Extensions;
 using FluentResults;
 using FluentValidation;
 using FluentValidation.Results;
@@ -24,18 +24,20 @@ public class UsersController : ApiController
     }
 
     [HttpGet]
-    [ProducesResponseType(typeof(PagedList<LocalUserDto>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAll(int page = 1)
+    [ProducesResponseType(typeof(PagedList<AppUserDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetAll([FromQuery] UserParams userParams)
     {
-        return Ok(await _userService.GetAllAsync(page));
+        Guid id = User.GetCurrentUserId();
+
+        return Ok(await _userService.GetAllAsync(id, userParams));
     }
 
     [HttpGet("{id:guid}", Name = "GetById")]
-    [ProducesResponseType(typeof(LocalUserDetailDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(AppUserDetailDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById(Guid id)
     {
-        Result<LocalUserDetailDto> result = await _userService.GetByIdAsync(id);
+        Result<AppUserDetailDto> result = await _userService.GetByIdAsync(id);
         if (result.IsFailed)
         {
             return Problem(result.Errors);
@@ -45,11 +47,11 @@ public class UsersController : ApiController
     }
 
     [HttpGet("{username}")]
-    [ProducesResponseType(typeof(LocalUserDetailDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(AppUserDetailDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetByUsername(string username)
     {
-        Result<LocalUserDetailDto> result = await _userService.GetByUsernameAsync(username);
+        Result<AppUserDetailDto> result = await _userService.GetByUsernameAsync(username);
         if (result.IsFailed)
         {
             return Problem(result.Errors);
@@ -64,10 +66,10 @@ public class UsersController : ApiController
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Update(
         Guid id,
-        [FromBody] UpdateLocalUserDto request,
-        [FromServices] IValidator<UpdateLocalUserDto> validator)
+        [FromBody] UpdateAppUserDto request,
+        [FromServices] IValidator<UpdateAppUserDto> validator)
     {
-        if (id != request.LocalUserId)
+        if (id != request.Id)
         {
             return Problem(statusCode: StatusCodes.Status400BadRequest, detail: "Id not match.");
         }
@@ -87,51 +89,57 @@ public class UsersController : ApiController
         return NoContent();
     }
 
-    [HttpPost("upload-picture/{id:guid}")]
-    [ProducesResponseType(typeof(PictureDto), StatusCodes.Status201Created)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> UploadPicture(Guid id, IFormFile imageFile)
-    {
-        Result<PictureDto> result = await _userService.UploadPictureAsync(id, imageFile);
-        if (result.IsFailed)
-        {
-            return Problem(result.Errors);
-        }
+    //[HttpPost("upload-picture")]
+    //[ProducesResponseType(typeof(PictureDto), StatusCodes.Status201Created)]
+    //[ProducesResponseType(StatusCodes.Status404NotFound)]
+    //public async Task<IActionResult> UploadPicture(IFormFile imageFile)
+    //{
+    //    Guid id = User.GetCurrentUserId();
 
-        return CreatedAtRoute(
-            nameof(GetById),
-            new { id },
-            result.Value);
-    }
+    //    Result<PictureDto> result = await _userService.UploadPictureAsync(id, imageFile);
+    //    if (result.IsFailed)
+    //    {
+    //        return Problem(result.Errors);
+    //    }
 
-    [HttpPut("set-main-picture/{id:guid}/{pictureId:guid}")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> SetMainPicture(Guid id, Guid pictureId)
-    {
-        Result result = await _userService.SetMainPictureAsync(id, pictureId);
-        if (result.IsFailed)
-        {
-            return Problem(result.Errors);
-        }
+    //    return CreatedAtRoute(
+    //        nameof(GetById),
+    //        new { id },
+    //        result.Value);
+    //}
 
-        return NoContent();
-    }
+    //[HttpPut("set-main-picture/{pictureId:guid}")]
+    //[ProducesResponseType(StatusCodes.Status204NoContent)]
+    //[ProducesResponseType(StatusCodes.Status404NotFound)]
+    //[ProducesResponseType(StatusCodes.Status400BadRequest)]
+    //public async Task<IActionResult> SetMainPicture(Guid pictureId)
+    //{
+    //    Guid id = User.GetCurrentUserId();
 
-    [HttpDelete("remove-picture/{id:guid}/{pictureId:guid}")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> RemovePicture(Guid id, Guid pictureId)
-    {
-        Result result = await _userService.RemovePictureAsync(id, pictureId);
-        if (result.IsFailed)
-        {
-            return Problem(result.Errors);
-        }
+    //    Result result = await _userService.SetMainPictureAsync(id, pictureId);
+    //    if (result.IsFailed)
+    //    {
+    //        return Problem(result.Errors);
+    //    }
 
-        return NoContent();
-    }
+    //    return NoContent();
+    //}
+
+    //[HttpDelete("remove-picture/{pictureId:guid}")]
+    //[ProducesResponseType(StatusCodes.Status204NoContent)]
+    //[ProducesResponseType(StatusCodes.Status404NotFound)]
+    //public async Task<IActionResult> RemovePicture(Guid pictureId)
+    //{
+    //    Guid id = User.GetCurrentUserId();
+
+    //    Result result = await _userService.RemovePictureAsync(id, pictureId);
+    //    if (result.IsFailed)
+    //    {
+    //        return Problem(result.Errors);
+    //    }
+
+    //    return NoContent();
+    //}
 
     [HttpDelete("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]

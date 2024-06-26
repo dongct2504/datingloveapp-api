@@ -1,11 +1,12 @@
 using Asp.Versioning;
+using DatingLoveApp.Api.Extensions;
 using DatingLoveApp.Api.Middleware;
 using DatingLoveApp.Business;
 using DatingLoveApp.DataAccess;
 using DatingLoveApp.DataAccess.Data;
+using DatingLoveApp.DataAccess.Identity;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.OpenApi.Models;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -18,44 +19,7 @@ var builder = WebApplication.CreateBuilder(args);
 
     builder.Services.AddEndpointsApiExplorer();
 
-    builder.Services.AddSwaggerGen(swaggerGenOptions =>
-    {
-        swaggerGenOptions.SwaggerDoc("v1", new OpenApiInfo
-        {
-            Title = "DatingLoveApp API V1",
-            Version = "v1"
-        });
-
-        swaggerGenOptions.SwaggerDoc("v2", new OpenApiInfo
-        {
-            Title = "DatingLoveApp API V2",
-            Version = "v2"
-        });
-
-        swaggerGenOptions.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-        {
-            Description = "JWT authorization header using Bearer Scheme",
-            Name = "Authorization",
-            In = ParameterLocation.Header,
-            Type = SecuritySchemeType.ApiKey,
-            Scheme = "Bearer"
-        });
-
-        swaggerGenOptions.AddSecurityRequirement(new OpenApiSecurityRequirement
-        {
-            {
-                new OpenApiSecurityScheme
-                {
-                    Reference = new OpenApiReference
-                    {
-                        Type = ReferenceType.SecurityScheme,
-                        Id = "Bearer"
-                    }
-                },
-                Array.Empty<string>()
-            }
-        });
-    });
+    builder.Services.AddSwaggerDocument();
 
     // register serilog
     Log.Logger = new LoggerConfiguration()
@@ -66,7 +30,7 @@ var builder = WebApplication.CreateBuilder(args);
     builder.Host.UseSerilog();
 
     // setting connection string and register DbContext
-    var sqlConnectionStringBuilder = new SqlConnectionStringBuilder
+    var defaultConnectionStringBuilder = new SqlConnectionStringBuilder
     {
         ConnectionString = builder.Configuration.GetConnectionString("DatingLoveAppConnectionString"),
         UserID = builder.Configuration["UserID"],
@@ -74,7 +38,17 @@ var builder = WebApplication.CreateBuilder(args);
     };
 
     builder.Services.AddDbContext<DatingLoveAppDbContext>(options =>
-        options.UseSqlServer(sqlConnectionStringBuilder.ConnectionString));
+        options.UseSqlServer(defaultConnectionStringBuilder.ConnectionString));
+
+    var identityConnectionStringBuilder = new SqlConnectionStringBuilder
+    {
+        ConnectionString = builder.Configuration.GetConnectionString("IdentityConnectionString"),
+        UserID = builder.Configuration["UserID"],
+        Password = builder.Configuration["Password"]
+    };
+
+    builder.Services.AddDbContext<DatingLoveAppIdentityDbContext>(options =>
+        options.UseSqlServer(identityConnectionStringBuilder.ConnectionString));
 
     // register dependencies in other players
     builder.Services
@@ -100,19 +74,19 @@ var app = builder.Build();
     // Configure the HTTP request pipeline.
     if (app.Environment.IsDevelopment())
     {
-        app.UseSwagger();
-        app.UseSwaggerUI(options =>
-        {
-            options.SwaggerEndpoint("/swagger/v1/swagger.json", "DatingLoveApp API V1");
-            options.SwaggerEndpoint("/swagger/v2/swagger.json", "DatingLoveApp API V2");
-        });
+        app.UseSwaggerDocument();
     }
-
-    app.UseMiddleware<ExceptionHandlerMiddleware>();
 
     //app.UseHttpsRedirection();
 
-    app.UseStaticFiles();
+    using (IServiceScope serviceScope = app.Services.CreateScope())
+    {
+        using DatingLoveAppIdentityDbContext dbContext = serviceScope.ServiceProvider
+            .GetRequiredService<DatingLoveAppIdentityDbContext>();
+        await dbContext.Database.MigrateAsync();
+    }
+
+    app.UseMiddleware<ExceptionHandlerMiddleware>();
 
     app.UseSerilogRequestLogging();
 

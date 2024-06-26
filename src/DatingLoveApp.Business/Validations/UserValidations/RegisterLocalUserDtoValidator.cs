@@ -3,7 +3,7 @@ using FluentValidation;
 
 namespace DatingLoveApp.Business.Validations.UserValidations;
 
-public class RegisterLocalUserDtoValidator : AbstractValidator<RegisterLocalUserDto>
+public class RegisterLocalUserDtoValidator : AbstractValidator<RegisterAppUserDto>
 {
     public RegisterLocalUserDtoValidator()
     {

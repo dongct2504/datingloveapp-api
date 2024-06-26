@@ -1,8 +1,8 @@
-﻿using DatingLoveApp.DataAccess.Entities;
+﻿using DatingLoveApp.DataAccess.Identity;
 
 namespace DatingLoveApp.DataAccess.Interfaces;
 
-public interface IUserRepository : IRepository<LocalUser>
+public interface IUserRepository : IRepository<AppUser>
 {
-    Task UpdateAsync(LocalUser localUser);
+    Task UpdateAsync(AppUser user);
 }

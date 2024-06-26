@@ -21,7 +21,7 @@ services:
     volumes:
       - ./.containers/datingloveapp-db:/var/opt/mssql/data
     ports:
-      - 1433:1433   
+      - 1433:1433
 
   datingloveapp.cache:
     image: redis:latest

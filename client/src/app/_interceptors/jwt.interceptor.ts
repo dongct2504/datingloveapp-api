@@ -20,7 +20,7 @@ export class JwtInterceptor implements HttpInterceptor {
     this.authenService.currentAuthenUser$.pipe(take(1)).subscribe(currentAuthenUser =>
       authenUser = currentAuthenUser);
 
-    if (authenUser) {
+    if (authenUser && authenUser.localUserDto) {
       request = request.clone({
         setHeaders: {
           Authorization: `Bearer ${authenUser.token}`
