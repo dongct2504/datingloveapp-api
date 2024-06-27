@@ -1,8 +1,8 @@
-﻿using CloudinaryDotNet.Actions;
-using DatingLoveApp.Business.Common.Constants;
+﻿using DatingLoveApp.Business.Common.Constants;
 using DatingLoveApp.Business.Common.Errors;
 using DatingLoveApp.Business.Dtos;
 using DatingLoveApp.Business.Dtos.LocalUserDtos;
+using DatingLoveApp.Business.Dtos.PictureDtos;
 using DatingLoveApp.Business.Interfaces;
 using DatingLoveApp.DataAccess.Data;
 using DatingLoveApp.DataAccess.Entities;
@@ -64,10 +64,12 @@ public class UserService : IUserService
             .Take(userParams.PageSize)
             .ToListAsync();
 
+
         IEnumerable<Task> tasks = users
             .Select(async u =>
             {
-                u.ProfilePictureUrl = await GetMainProfilePictureUrlAsync(u.Id);
+                var mainSpec = new MainPictureByUserIdSpecification(u.Id);
+                u.ProfilePictureUrl = (await _pictureRepository.GetWithSpecAsync(mainSpec, true))?.ImageUrl;
             });
 
         await Task.WhenAll(tasks);
@@ -86,7 +88,7 @@ public class UserService : IUserService
     public async Task<Result<AppUserDetailDto>> GetByIdAsync(string id)
     {
         AppUserDetailDto? userDetailDto = await _userManager.Users
-            .Where(u => u.Id == id.ToString())
+            .Where(u => u.Id == id)
             .AsNoTracking()
             .ProjectToType<AppUserDetailDto>()
             .FirstOrDefaultAsync();
@@ -98,7 +100,12 @@ public class UserService : IUserService
             return Result.Fail(new NotFoundError(message));
         }
 
-        userDetailDto.ProfilePictureUrl = await GetMainProfilePictureUrlAsync(userDetailDto.Id);
+        var mainSpec = new MainPictureByUserIdSpecification(id);
+        userDetailDto.ProfilePictureUrl = (await _pictureRepository.GetWithSpecAsync(mainSpec, true))?.ImageUrl;
+
+        var spec = new PictureByUserIdSpecification(id);
+        userDetailDto.Pictures = _mapper.Map<List<PictureDto>>(
+            await _pictureRepository.GetAllWithSpecAsync(spec, true));
 
         return userDetailDto;
     }
@@ -118,14 +125,40 @@ public class UserService : IUserService
             return Result.Fail(new NotFoundError(message));
         }
 
-        userDetailDto.ProfilePictureUrl = await GetMainProfilePictureUrlAsync(userDetailDto.Id);
+        var mainSpec = new MainPictureByUserIdSpecification(userDetailDto.Id);
+        userDetailDto.ProfilePictureUrl = (await _pictureRepository.GetWithSpecAsync(mainSpec, true))?.ImageUrl;
+
+        var spec = new PictureByUserIdSpecification(userDetailDto.Id);
+        userDetailDto.Pictures = _mapper.Map<List<PictureDto>>(
+            await _pictureRepository.GetAllWithSpecAsync(spec, true));
 
         return userDetailDto;
     }
 
+    public async Task<Result<AppUserDto>> GetCurrentUserAsync(string id)
+    {
+        AppUserDto? userDto = await _userManager.Users
+            .Where(u => u.Id == id)
+            .AsNoTracking()
+            .ProjectToType<AppUserDto>()
+            .FirstOrDefaultAsync();
+
+        if (userDto == null)
+        {
+            string message = "User not found.";
+            Log.Warning($"{nameof(GetCurrentUserAsync)} - {message} - {typeof(UserService)}");
+            return Result.Fail(new NotFoundError(message));
+        }
+
+        var mainSpec = new MainPictureByUserIdSpecification(id);
+        userDto.ProfilePictureUrl = (await _pictureRepository.GetWithSpecAsync(mainSpec, true))?.ImageUrl;
+
+        return userDto;
+    }
+
     public async Task<Result> UpdateAsync(UpdateAppUserDto updateUserDto)
     {
-        AppUser user = await _userManager.FindByIdAsync(updateUserDto.Id.ToString());
+        AppUser user = await _userManager.FindByIdAsync(updateUserDto.Id);
         if (user == null)
         {
             string message = "User not found.";
@@ -142,6 +175,8 @@ public class UserService : IUserService
 
         user.UpdatedAt = DateTime.Now;
 
+        await _userManager.UpdateAsync(user);
+
         return Result.Ok();
     }
 
@@ -155,9 +190,8 @@ public class UserService : IUserService
             return Result.Fail(new NotFoundError(message));
         }
 
-        var spec = new PictureByUserId(id);
-        IEnumerable<Picture> pictures = await _pictureRepository
-            .GetAllWithSpecAsync(spec, asNoTracking: true);
+        var spec = new PictureByUserIdSpecification(id);
+        IEnumerable<Picture> pictures = await _pictureRepository.GetAllWithSpecAsync(spec, true);
 
         IEnumerable<Task> tasks = pictures
             .Select(p => _fileStorageService.RemoveImageAsync(p.PublicId));
@@ -166,13 +200,5 @@ public class UserService : IUserService
         await _userManager.DeleteAsync(user);
 
         return Result.Ok();
-    }
-
-    private async Task<string?> GetMainProfilePictureUrlAsync(string userId)
-    {
-        return await _dbContext.Pictures
-            .Where(p => p.AppUserId == userId && p.IsMain)
-            .Select(p => p.ImageUrl)
-            .FirstOrDefaultAsync();
     }
 }

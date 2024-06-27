@@ -6,13 +6,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DatingLoveApp.DataAccess.Entities
 {
-    [Index("LocalUserId", Name = "PICTURESLOCALUSERS_FK")]
     public partial class Picture
     {
         [Key]
         public Guid PictureId { get; set; }
         [StringLength(450)]
-        public string AppUserId { get; set; } = null!;
+        [Unicode(false)]
+        public string? AppUserId { get; set; }
         [StringLength(1024)]
         [Unicode(false)]
         public string ImageUrl { get; set; } = null!;

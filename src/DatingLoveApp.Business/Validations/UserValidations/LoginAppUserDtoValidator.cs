@@ -3,9 +3,9 @@ using FluentValidation;
 
 namespace DatingLoveApp.Business.Validations.UserValidations;
 
-public class LoginLocalUserDtoValidator : AbstractValidator<LoginAppUserDto>
+public class LoginAppUserDtoValidator : AbstractValidator<LoginAppUserDto>
 {
-    public LoginLocalUserDtoValidator()
+    public LoginAppUserDtoValidator()
     {
         RuleFor(x => x.UserName)
             .NotEmpty();

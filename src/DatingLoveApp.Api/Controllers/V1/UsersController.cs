@@ -27,15 +27,15 @@ public class UsersController : ApiController
     [ProducesResponseType(typeof(PagedList<AppUserDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll([FromQuery] UserParams userParams)
     {
-        Guid id = User.GetCurrentUserId();
+        string id = User.GetCurrentUserId();
 
         return Ok(await _userService.GetAllAsync(id, userParams));
     }
 
-    [HttpGet("{id:guid}", Name = "GetById")]
+    [HttpGet("{id}", Name = "GetById")]
     [ProducesResponseType(typeof(AppUserDetailDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetById(Guid id)
+    public async Task<IActionResult> GetById(string id)
     {
         Result<AppUserDetailDto> result = await _userService.GetByIdAsync(id);
         if (result.IsFailed)
@@ -46,7 +46,7 @@ public class UsersController : ApiController
         return Ok(result.Value);
     }
 
-    [HttpGet("{username}")]
+    [HttpGet("username/{username}")]
     [ProducesResponseType(typeof(AppUserDetailDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetByUsername(string username)
@@ -60,12 +60,27 @@ public class UsersController : ApiController
         return Ok(result.Value);
     }
 
-    [HttpPut("{id:guid}")]
+    [HttpGet("current-user")]
+    [ProducesResponseType(typeof(AppUserDto), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetCurrentUser()
+    {
+        string id = User.GetCurrentUserId();
+
+        Result<AppUserDto> result = await _userService.GetCurrentUserAsync(id);
+        if (result.IsFailed)
+        {
+            return Problem(result.Errors);
+        }
+
+        return Ok(result.Value);
+    }
+
+    [HttpPut("{id}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Update(
-        Guid id,
+        string id,
         [FromBody] UpdateAppUserDto request,
         [FromServices] IValidator<UpdateAppUserDto> validator)
     {
@@ -89,62 +104,10 @@ public class UsersController : ApiController
         return NoContent();
     }
 
-    //[HttpPost("upload-picture")]
-    //[ProducesResponseType(typeof(PictureDto), StatusCodes.Status201Created)]
-    //[ProducesResponseType(StatusCodes.Status404NotFound)]
-    //public async Task<IActionResult> UploadPicture(IFormFile imageFile)
-    //{
-    //    Guid id = User.GetCurrentUserId();
-
-    //    Result<PictureDto> result = await _userService.UploadPictureAsync(id, imageFile);
-    //    if (result.IsFailed)
-    //    {
-    //        return Problem(result.Errors);
-    //    }
-
-    //    return CreatedAtRoute(
-    //        nameof(GetById),
-    //        new { id },
-    //        result.Value);
-    //}
-
-    //[HttpPut("set-main-picture/{pictureId:guid}")]
-    //[ProducesResponseType(StatusCodes.Status204NoContent)]
-    //[ProducesResponseType(StatusCodes.Status404NotFound)]
-    //[ProducesResponseType(StatusCodes.Status400BadRequest)]
-    //public async Task<IActionResult> SetMainPicture(Guid pictureId)
-    //{
-    //    Guid id = User.GetCurrentUserId();
-
-    //    Result result = await _userService.SetMainPictureAsync(id, pictureId);
-    //    if (result.IsFailed)
-    //    {
-    //        return Problem(result.Errors);
-    //    }
-
-    //    return NoContent();
-    //}
-
-    //[HttpDelete("remove-picture/{pictureId:guid}")]
-    //[ProducesResponseType(StatusCodes.Status204NoContent)]
-    //[ProducesResponseType(StatusCodes.Status404NotFound)]
-    //public async Task<IActionResult> RemovePicture(Guid pictureId)
-    //{
-    //    Guid id = User.GetCurrentUserId();
-
-    //    Result result = await _userService.RemovePictureAsync(id, pictureId);
-    //    if (result.IsFailed)
-    //    {
-    //        return Problem(result.Errors);
-    //    }
-
-    //    return NoContent();
-    //}
-
-    [HttpDelete("{id:guid}")]
+    [HttpDelete("{id}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> Remove(Guid id)
+    public async Task<IActionResult> Remove(string id)
     {
         Result result = await _userService.RemoveAsync(id);
         if (result.IsFailed)

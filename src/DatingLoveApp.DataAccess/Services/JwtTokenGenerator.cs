@@ -1,6 +1,7 @@
 ﻿using DatingLoveApp.Business.Interfaces;
 using DatingLoveApp.DataAccess.Common;
-using DatingLoveApp.DataAccess.Entities;
+using DatingLoveApp.DataAccess.Identity;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -12,25 +13,31 @@ namespace DatingLoveApp.DataAccess.Services;
 public class JwtTokenGenerator : IJwtTokenGenerator
 {
     private readonly JwtSettings _jwtSettings;
+    private readonly UserManager<AppUser> _userManager;
 
-    public JwtTokenGenerator(IOptions<JwtSettings> jwtOptions)
+    public JwtTokenGenerator(IOptions<JwtSettings> jwtOptions, UserManager<AppUser> userManager)
     {
         _jwtSettings = jwtOptions.Value;
+        _userManager = userManager;
     }
 
-    public string GenerateToken(LocalUser user)
+    public async Task<string> GenerateTokenAsync(AppUser user)
     {
         SigningCredentials signingCredentials = new SigningCredentials(
             new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Secret)),
-            SecurityAlgorithms.HmacSha256);
+                SecurityAlgorithms.HmacSha256);
 
-        Claim[] claims = new Claim[]
+        var roles = await _userManager.GetRolesAsync(user);
+
+        IEnumerable<Claim> roleClaims = roles.Select(r => new Claim(ClaimTypes.Role, r));
+
+        var claims = new Claim[]
         {
-            new Claim(JwtRegisteredClaimNames.Sub, user.LocalUserId.ToString()),
+            new Claim(JwtRegisteredClaimNames.Sub, user.Id),
             new Claim(JwtRegisteredClaimNames.NameId, user.UserName),
-            new Claim(ClaimTypes.Role, user.Role),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-        };
+        }
+        .Union(roleClaims);
 
         JwtSecurityToken jwtSecurityToken = new JwtSecurityToken(
             issuer: _jwtSettings.Issuer,
@@ -42,7 +49,7 @@ public class JwtTokenGenerator : IJwtTokenGenerator
         return new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken);
     }
 
-    public string GenerateEmailConfirmationToken(LocalUser user)
+    public string GenerateEmailConfirmationToken(AppUser user)
     {
         throw new NotImplementedException();
     }

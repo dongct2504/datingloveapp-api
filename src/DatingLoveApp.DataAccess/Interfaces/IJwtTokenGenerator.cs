@@ -1,9 +1,9 @@
-﻿using DatingLoveApp.DataAccess.Entities;
+﻿using DatingLoveApp.DataAccess.Identity;
 
 namespace DatingLoveApp.Business.Interfaces;
 
 public interface IJwtTokenGenerator
 {
-    string GenerateToken(LocalUser user);
-    string GenerateEmailConfirmationToken(LocalUser user);
+    Task<string> GenerateTokenAsync(AppUser user);
+    string GenerateEmailConfirmationToken(AppUser user);
 }
