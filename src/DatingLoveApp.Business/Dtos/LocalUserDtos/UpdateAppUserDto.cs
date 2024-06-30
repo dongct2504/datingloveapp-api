@@ -8,14 +8,6 @@ public class UpdateAppUserDto
 
     public string? LastName { get; set; }
 
-    public DateTime DateOfBirth { get; set; }
-
-    public string PhoneNumber { get; set; } = null!;
-
-    public string Gender { get; set; } = null!;
-
-    public string Nickname { get; set; } = null!;
-
     public string? Introduction { get; set; }
 
     public string? Interest { get; set; }
