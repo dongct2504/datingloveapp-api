@@ -2,9 +2,9 @@
 
 namespace DatingLoveApp.DataAccess.Specifications.PictureSpecifications;
 
-public class PictureByUserIdSpecification : Specification<Picture>
+public class AllPicturesByUserIdSpecification : Specification<Picture>
 {
-    public PictureByUserIdSpecification(string id)
+    public AllPicturesByUserIdSpecification(string id)
         : base(p => p.AppUserId == id)
     {
     }

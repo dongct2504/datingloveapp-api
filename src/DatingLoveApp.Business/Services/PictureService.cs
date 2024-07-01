@@ -53,7 +53,7 @@ public class PictureService : IPictureService
             return Result.Fail(new BadRequestError(message));
         }
 
-        Picture picture = new Picture()
+        Picture picture = new Picture
         {
             PictureId = Guid.NewGuid(),
             AppUserId = user.Id,
@@ -63,7 +63,8 @@ public class PictureService : IPictureService
             UpdatedAt = DateTime.Now
         };
 
-        if (await _pictureRepository.GetCountAsync() == 0)
+        var spec = new AllPicturesByUserIdSpecification(id);
+        if (!(await _pictureRepository.GetAllWithSpecAsync(spec, true)).Any())
         {
             picture.IsMain = true;
         }
@@ -83,7 +84,7 @@ public class PictureService : IPictureService
             return Result.Fail(new NotFoundError(message));
         }
 
-        var pictureSpec = new PictureByUserIdSpecification(id);
+        var pictureSpec = new PictureByUserIdAndPictureIdSpecification(id, pictureId);
         Picture? picture = await _pictureRepository.GetWithSpecAsync(pictureSpec, asNoTracking: true);
         if (picture == null)
         {
@@ -131,7 +132,8 @@ public class PictureService : IPictureService
             return Result.Fail(new NotFoundError(message));
         }
 
-        if (picture.IsMain && await _pictureRepository.GetCountAsync() > 1)
+        var spec = new AllPicturesByUserIdSpecification(id);
+        if (picture.IsMain && (await _pictureRepository.GetAllWithSpecAsync(spec)).Any())
         {
             string message = "You can't delete your main picture.";
             Log.Warning($"{nameof(RemovePictureAsync)} - {message} - {typeof(PictureService)}");

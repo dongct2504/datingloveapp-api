@@ -64,7 +64,6 @@ public class UserService : IUserService
             .Take(userParams.PageSize)
             .ToListAsync();
 
-
         IEnumerable<Task> tasks = users
             .Select(async u =>
             {
@@ -103,7 +102,7 @@ public class UserService : IUserService
         var mainSpec = new MainPictureByUserIdSpecification(id);
         userDetailDto.ProfilePictureUrl = (await _pictureRepository.GetWithSpecAsync(mainSpec, true))?.ImageUrl;
 
-        var spec = new PictureByUserIdSpecification(id);
+        var spec = new AllPicturesByUserIdSpecification(id);
         userDetailDto.Pictures = _mapper.Map<List<PictureDto>>(
             await _pictureRepository.GetAllWithSpecAsync(spec, true));
 
@@ -128,7 +127,7 @@ public class UserService : IUserService
         var mainSpec = new MainPictureByUserIdSpecification(userDetailDto.Id);
         userDetailDto.ProfilePictureUrl = (await _pictureRepository.GetWithSpecAsync(mainSpec, true))?.ImageUrl;
 
-        var spec = new PictureByUserIdSpecification(userDetailDto.Id);
+        var spec = new AllPicturesByUserIdSpecification(userDetailDto.Id);
         userDetailDto.Pictures = _mapper.Map<List<PictureDto>>(
             await _pictureRepository.GetAllWithSpecAsync(spec, true));
 
@@ -190,7 +189,7 @@ public class UserService : IUserService
             return Result.Fail(new NotFoundError(message));
         }
 
-        var spec = new PictureByUserIdSpecification(id);
+        var spec = new AllPicturesByUserIdSpecification(id);
         IEnumerable<Picture> pictures = await _pictureRepository.GetAllWithSpecAsync(spec, true);
 
         IEnumerable<Task> tasks = pictures
