@@ -64,14 +64,11 @@ public class UserService : IUserService
             .Take(userParams.PageSize)
             .ToListAsync();
 
-        IEnumerable<Task> tasks = users
-            .Select(async u =>
-            {
-                var mainSpec = new MainPictureByUserIdSpecification(u.Id);
-                u.ProfilePictureUrl = (await _pictureRepository.GetWithSpecAsync(mainSpec, true))?.ImageUrl;
-            });
-
-        await Task.WhenAll(tasks);
+        foreach (var user in users)
+        {
+            var mainSpec = new MainPictureByUserIdSpecification(user.Id);
+            user.ProfilePictureUrl = (await _pictureRepository.GetWithSpecAsync(mainSpec, true))?.ImageUrl;
+        }
 
         PagedList<AppUserDto> pagedList = new PagedList<AppUserDto>
         {
