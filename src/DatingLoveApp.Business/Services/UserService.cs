@@ -57,17 +57,25 @@ public class UserService : IUserService
         query = query.Where(u => u.DateOfBirth.Year >= minDob && u.DateOfBirth.Year <= maxDob);
 
         int totalRecords = await query.CountAsync();
+
         List<AppUserDto> users = await query
             .AsNoTracking()
-            .ProjectToType<AppUserDto>()
             .Skip((userParams.PageNumber - 1) * userParams.PageSize)
             .Take(userParams.PageSize)
+            .ProjectToType<AppUserDto>()
             .ToListAsync();
 
-        foreach (var user in users)
+        string[] userIds = users
+            .Select(u => u.Id)
+            .ToArray();
+
+        var spec = new MainPicturesByUserIdsSpecification(userIds);
+        IEnumerable<Picture> mainPicturesForEachUser = await _pictureRepository.GetAllWithSpecAsync(spec);
+
+        foreach (AppUserDto user in users)
         {
-            var mainSpec = new MainPictureByUserIdSpecification(user.Id);
-            user.ProfilePictureUrl = (await _pictureRepository.GetWithSpecAsync(mainSpec, true))?.ImageUrl;
+            user.ProfilePictureUrl = mainPicturesForEachUser
+                .FirstOrDefault(p => p.AppUserId == user.Id)?.ImageUrl;
         }
 
         PagedList<AppUserDto> pagedList = new PagedList<AppUserDto>
