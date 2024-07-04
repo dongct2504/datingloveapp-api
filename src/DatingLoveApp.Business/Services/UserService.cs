@@ -56,6 +56,17 @@ public class UserService : IUserService
 
         query = query.Where(u => u.DateOfBirth.Year >= minDob && u.DateOfBirth.Year <= maxDob);
 
+        switch (userParams.SortBy)
+        {
+            case UserSortConstants.LastActive:
+                query = query.OrderByDescending(u => u.LastActive);
+                break;
+
+            case UserSortConstants.Created:
+                query = query.OrderByDescending(u => u.CreatedAt);
+                break;
+        }
+
         int totalRecords = await query.CountAsync();
 
         List<AppUserDto> users = await query
