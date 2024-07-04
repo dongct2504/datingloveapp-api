@@ -42,6 +42,11 @@ public class Repository<T> : IRepository<T> where T : class
         return await _dbSet.FindAsync(id);
     }
 
+    public async Task<T?> GetAsync(string id)
+    {
+        return await _dbSet.FindAsync(id);
+    }
+
     public async Task<T?> GetAsync(Guid id)
     {
         return await _dbSet.FindAsync(id);

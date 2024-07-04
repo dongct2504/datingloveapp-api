@@ -10,6 +10,7 @@ public interface IRepository<T> where T : class
 
     Task<T?> GetAsync(int id);
     Task<T?> GetAsync(long id);
+    Task<T?> GetAsync(string id);
     Task<T?> GetAsync(Guid id);
 
     Task AddAsync(T entity);

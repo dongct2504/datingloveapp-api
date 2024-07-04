@@ -1,4 +1,5 @@
-﻿using DatingLoveApp.Business.Common.Errors;
+﻿using DatingLoveApp.Business.Common;
+using DatingLoveApp.Business.Common.Errors;
 using FluentResults;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
@@ -7,6 +8,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 namespace DatingLoveApp.Api.Controllers;
 
 [ApiController]
+[ServiceFilter(typeof(LogUserActivity))]
 public class ApiController : ControllerBase
 {
     protected ActionResult Problem(List<IError> errors)
