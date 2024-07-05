@@ -20,18 +20,21 @@ public class PictureService : IPictureService
     private readonly UserManager<AppUser> _userManager;
     private readonly IPictureRepository _pictureRepository;
     private readonly IFileStorageService _fileStorageService;
+    private readonly IDateTimeProvider _dateTimeProvider;
     private readonly IMapper _mapper;
 
     public PictureService(
         UserManager<AppUser> userManager,
         IPictureRepository pictureRepository,
         IFileStorageService fileStorageService,
-        IMapper mapper)
+        IMapper mapper,
+        IDateTimeProvider dateTimeProvider)
     {
         _userManager = userManager;
         _pictureRepository = pictureRepository;
         _fileStorageService = fileStorageService;
         _mapper = mapper;
+        _dateTimeProvider = dateTimeProvider;
     }
 
     public async Task<Result<PictureDto>> UploadPictureAsync(string id, IFormFile imageFile)
@@ -59,8 +62,8 @@ public class PictureService : IPictureService
             AppUserId = user.Id,
             ImageUrl = uploadResult.SecureUrl.AbsoluteUri,
             PublicId = uploadResult.PublicId,
-            CreatedAt = DateTime.Now,
-            UpdatedAt = DateTime.Now
+            CreatedAt = _dateTimeProvider.LocalVietnamDateTimeNow,
+            UpdatedAt = _dateTimeProvider.LocalVietnamDateTimeNow
         };
 
         var spec = new AllPicturesByUserIdSpecification(id);
@@ -68,6 +71,8 @@ public class PictureService : IPictureService
         {
             picture.IsMain = true;
         }
+
+        user.UpdatedAt = _dateTimeProvider.LocalVietnamDateTimeNow;
 
         await _pictureRepository.AddAsync(picture);
 
@@ -108,6 +113,9 @@ public class PictureService : IPictureService
         }
 
         picture.IsMain = true;
+        picture.UpdatedAt = _dateTimeProvider.LocalVietnamDateTimeNow;
+
+        user.UpdatedAt = _dateTimeProvider.LocalVietnamDateTimeNow;
 
         await _pictureRepository.UpdateAsync(picture);
 
@@ -147,6 +155,8 @@ public class PictureService : IPictureService
             Log.Warning($"{nameof(RemovePictureAsync)} - {message} - {typeof(PictureService)}");
             return Result.Fail(new BadRequestError(message));
         }
+
+        user.UpdatedAt = _dateTimeProvider.LocalVietnamDateTimeNow;
 
         await _pictureRepository.RemoveAsync(picture);
 

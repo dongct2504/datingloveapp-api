@@ -2,16 +2,19 @@
 using DatingLoveApp.DataAccess.Identity;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Identity;
+using DatingLoveApp.DataAccess.Interfaces;
 
 namespace DatingLoveApp.Business.Common;
 
 public class LogUserActivity : IAsyncActionFilter
 {
     private readonly UserManager<AppUser> _userManager;
+    private readonly IDateTimeProvider _dateTimeProvider;
 
-    public LogUserActivity(UserManager<AppUser> userManager)
+    public LogUserActivity(UserManager<AppUser> userManager, IDateTimeProvider dateTimeProvider)
     {
         _userManager = userManager;
+        _dateTimeProvider = dateTimeProvider;
     }
 
     public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
@@ -30,7 +33,7 @@ public class LogUserActivity : IAsyncActionFilter
 
         if (user != null)
         {
-            user.LastActive = DateTime.Now;
+            user.LastActive = _dateTimeProvider.LocalVietnamDateTimeNow;
             await _userManager.UpdateAsync(user);
         }
     }

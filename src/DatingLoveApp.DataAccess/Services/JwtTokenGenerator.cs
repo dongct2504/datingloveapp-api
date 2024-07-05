@@ -1,6 +1,7 @@
 ﻿using DatingLoveApp.Business.Interfaces;
 using DatingLoveApp.DataAccess.Common;
 using DatingLoveApp.DataAccess.Identity;
+using DatingLoveApp.DataAccess.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -14,11 +15,16 @@ public class JwtTokenGenerator : IJwtTokenGenerator
 {
     private readonly JwtSettings _jwtSettings;
     private readonly UserManager<AppUser> _userManager;
+    private readonly IDateTimeProvider _dateTimeProvider;
 
-    public JwtTokenGenerator(IOptions<JwtSettings> jwtOptions, UserManager<AppUser> userManager)
+    public JwtTokenGenerator(
+        IOptions<JwtSettings> jwtOptions,
+        UserManager<AppUser> userManager,
+        IDateTimeProvider dateTimeProvider)
     {
         _jwtSettings = jwtOptions.Value;
         _userManager = userManager;
+        _dateTimeProvider = dateTimeProvider;
     }
 
     public async Task<string> GenerateTokenAsync(AppUser user)
@@ -42,7 +48,7 @@ public class JwtTokenGenerator : IJwtTokenGenerator
         JwtSecurityToken jwtSecurityToken = new JwtSecurityToken(
             issuer: _jwtSettings.Issuer,
             audience: _jwtSettings.Audience,
-            expires: DateTime.Now.AddDays(_jwtSettings.ExpiryDays),
+            expires: _dateTimeProvider.LocalVietnamDateTimeNow.AddDays(_jwtSettings.ExpiryDays),
             claims: claims,
             signingCredentials: signingCredentials);
 

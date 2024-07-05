@@ -23,6 +23,7 @@ public class UserService : IUserService
     private readonly DatingLoveAppDbContext _dbContext;
     private readonly UserManager<AppUser> _userManager;
     private readonly IPictureRepository _pictureRepository;
+    private readonly IDateTimeProvider _dateTimeProvider;
     private readonly IFileStorageService _fileStorageService;
     private readonly IMapper _mapper;
 
@@ -31,13 +32,15 @@ public class UserService : IUserService
         IMapper mapper,
         UserManager<AppUser> userManager,
         DatingLoveAppDbContext dbContext,
-        IPictureRepository pictureRepository)
+        IPictureRepository pictureRepository,
+        IDateTimeProvider dateTimeProvider)
     {
         _fileStorageService = fileStorageService;
         _mapper = mapper;
         _userManager = userManager;
         _dbContext = dbContext;
         _pictureRepository = pictureRepository;
+        _dateTimeProvider = dateTimeProvider;
     }
 
     public async Task<PagedList<AppUserDto>> GetAllAsync(string id, UserParams userParams)
@@ -188,7 +191,7 @@ public class UserService : IUserService
             await _userManager.AddToRoleAsync(user, updateUserDto.Role);
         }
 
-        user.UpdatedAt = DateTime.Now;
+        user.UpdatedAt = _dateTimeProvider.LocalVietnamDateTimeNow;
 
         await _userManager.UpdateAsync(user);
 

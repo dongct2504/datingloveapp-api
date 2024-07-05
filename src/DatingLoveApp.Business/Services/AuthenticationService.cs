@@ -21,6 +21,7 @@ public class AuthenticationService : IAuthenticationService
     private readonly IPictureRepository _pictureRepository;
     private readonly SignInManager<AppUser> _signInManager;
     private readonly IJwtTokenGenerator _jwtTokenGenerator;
+    private readonly IDateTimeProvider _dateTimeProvider;
     private readonly IMapper _mapper;
 
     public AuthenticationService(
@@ -29,7 +30,8 @@ public class AuthenticationService : IAuthenticationService
         UserManager<AppUser> userManager,
         RoleManager<IdentityRole> roleManager,
         SignInManager<AppUser> signInManager,
-        IPictureRepository pictureRepository)
+        IPictureRepository pictureRepository,
+        IDateTimeProvider dateTimeProvider)
     {
         _mapper = mapper;
         _jwtTokenGenerator = jwtTokenGenerator;
@@ -37,6 +39,7 @@ public class AuthenticationService : IAuthenticationService
         _roleManager = roleManager;
         _signInManager = signInManager;
         _pictureRepository = pictureRepository;
+        _dateTimeProvider = dateTimeProvider;
     }
 
     public async Task<Result<AuthenticationDto>> RegisterAsync(RegisterAppUserDto userDto)
@@ -52,9 +55,9 @@ public class AuthenticationService : IAuthenticationService
         }
 
         user = _mapper.Map<AppUser>(userDto);
-        user.LastActive = DateTime.Now;
-        user.CreatedAt = DateTime.Now;
-        user.UpdatedAt = DateTime.Now;
+        user.LastActive = _dateTimeProvider.LocalVietnamDateTimeNow;
+        user.CreatedAt = _dateTimeProvider.LocalVietnamDateTimeNow;
+        user.UpdatedAt = _dateTimeProvider.LocalVietnamDateTimeNow;
 
         IdentityResult result = await _userManager.CreateAsync(user, userDto.Password);
         if (!result.Succeeded)
@@ -138,7 +141,7 @@ public class AuthenticationService : IAuthenticationService
             Token = token
         };
 
-        Log.Information($"User login at: {DateTime.Now:dd/MM/yyyy hh:mm tt}.");
+        Log.Information($"User login at: {_dateTimeProvider.LocalVietnamDateTimeNow:dd/MM/yyyy hh:mm tt}.");
 
         return authenticationDto;
     }
