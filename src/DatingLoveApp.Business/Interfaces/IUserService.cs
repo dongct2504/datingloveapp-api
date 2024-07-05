@@ -1,5 +1,5 @@
 ﻿using DatingLoveApp.Business.Dtos;
-using DatingLoveApp.Business.Dtos.LocalUserDtos;
+using DatingLoveApp.Business.Dtos.AppUsers;
 using FluentResults;
 
 namespace DatingLoveApp.Business.Interfaces;

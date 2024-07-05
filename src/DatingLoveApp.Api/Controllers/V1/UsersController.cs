@@ -1,6 +1,6 @@
 ﻿using Asp.Versioning;
 using DatingLoveApp.Business.Dtos;
-using DatingLoveApp.Business.Dtos.LocalUserDtos;
+using DatingLoveApp.Business.Dtos.AppUsers;
 using DatingLoveApp.Business.Interfaces;
 using DatingLoveApp.DataAccess.Extensions;
 using FluentResults;

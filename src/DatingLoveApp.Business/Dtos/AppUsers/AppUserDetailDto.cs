@@ -1,6 +1,6 @@
 ﻿using DatingLoveApp.Business.Dtos.PictureDtos;
 
-namespace DatingLoveApp.Business.Dtos.LocalUserDtos;
+namespace DatingLoveApp.Business.Dtos.AppUsers;
 
 public class AppUserDetailDto
 {

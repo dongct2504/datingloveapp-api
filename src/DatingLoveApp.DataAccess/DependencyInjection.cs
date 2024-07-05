@@ -1,5 +1,6 @@
 ﻿using DatingLoveApp.Business.Interfaces;
 using DatingLoveApp.DataAccess.Common;
+using DatingLoveApp.DataAccess.Entities;
 using DatingLoveApp.DataAccess.Identity;
 using DatingLoveApp.DataAccess.Interfaces;
 using DatingLoveApp.DataAccess.Repositories;
@@ -35,6 +36,7 @@ public static class DependencyInjection
 
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IPictureRepository, PictureRepository>();
+        services.AddScoped<IAppUserLikeRepository, AppUserLikeRepository>();
 
         return services;
     }

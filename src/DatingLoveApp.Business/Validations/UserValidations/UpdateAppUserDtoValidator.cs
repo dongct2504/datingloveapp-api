@@ -1,4 +1,4 @@
-﻿using DatingLoveApp.Business.Dtos.LocalUserDtos;
+﻿using DatingLoveApp.Business.Dtos.AppUsers;
 using FluentValidation;
 
 namespace DatingLoveApp.Business.Validations.UserValidations;

@@ -1,4 +1,4 @@
-﻿using DatingLoveApp.Business.Dtos.LocalUserDtos;
+﻿using DatingLoveApp.Business.Dtos.AppUsers;
 
 namespace DatingLoveApp.Business.Dtos.AuthenticationDtos;
 

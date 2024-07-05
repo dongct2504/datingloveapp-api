@@ -1,7 +1,7 @@
 ﻿using DatingLoveApp.Business.Common.Constants;
 using DatingLoveApp.Business.Common.Errors;
+using DatingLoveApp.Business.Dtos.AppUsers;
 using DatingLoveApp.Business.Dtos.AuthenticationDtos;
-using DatingLoveApp.Business.Dtos.LocalUserDtos;
 using DatingLoveApp.Business.Interfaces;
 using DatingLoveApp.DataAccess.Identity;
 using DatingLoveApp.DataAccess.Interfaces;

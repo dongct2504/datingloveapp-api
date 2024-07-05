@@ -1,4 +1,4 @@
-﻿namespace DatingLoveApp.Business.Dtos.LocalUserDtos;
+﻿namespace DatingLoveApp.Business.Dtos.AppUsers;
 
 public class UpdateAppUserDto
 {
