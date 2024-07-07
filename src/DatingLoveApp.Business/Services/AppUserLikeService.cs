@@ -111,7 +111,7 @@ public class AppUserLikeService : IAppUserLikeService
         return pagedList;
     }
 
-    public async Task<Result> UpdateLikeAsync(string sourceUserId, string likedUserId)
+    public async Task<Result<bool>> UpdateLikeAsync(string sourceUserId, string likedUserId)
     {
         AppUser? sourceUser = await _userManager.FindByIdAsync(sourceUserId);
         if (sourceUser == null)
@@ -140,7 +140,7 @@ public class AppUserLikeService : IAppUserLikeService
         if (userLike != null)
         {
             await _appUserLikeRepository.RemoveAsync(userLike);
-            return Result.Ok();
+            return Result.Ok(false);
         }
 
         AppUserLike appUserLike = new AppUserLike
@@ -153,6 +153,6 @@ public class AppUserLikeService : IAppUserLikeService
 
         await _appUserLikeRepository.AddAsync(appUserLike);
 
-        return Result.Ok();
+        return Result.Ok(true);
     }
 }

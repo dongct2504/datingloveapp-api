@@ -46,12 +46,12 @@ public class AppUserLikesController : ApiController
     {
         string sourceUserId = User.GetCurrentUserId();
 
-        Result result = await _appUserLikeService.UpdateLikeAsync(sourceUserId, id);
+        Result<bool> result = await _appUserLikeService.UpdateLikeAsync(sourceUserId, id);
         if (result.IsFailed)
         {
             return Problem(result.Errors);
         }
 
-        return Ok();
+        return Ok(result.Value);
     }
 }
