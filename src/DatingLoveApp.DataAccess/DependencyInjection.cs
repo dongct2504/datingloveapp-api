@@ -1,6 +1,5 @@
 ﻿using DatingLoveApp.Business.Interfaces;
 using DatingLoveApp.DataAccess.Common;
-using DatingLoveApp.DataAccess.Entities;
 using DatingLoveApp.DataAccess.Identity;
 using DatingLoveApp.DataAccess.Interfaces;
 using DatingLoveApp.DataAccess.Repositories;
@@ -24,7 +23,6 @@ public static class DependencyInjection
         // register redis
         services.AddStackExchangeRedisCache(options =>
             options.Configuration = configuration.GetConnectionString("Cache"));
-
         services.AddSingleton<ICacheService, CacheService>();
 
         // register image service
@@ -33,6 +31,8 @@ public static class DependencyInjection
 
         services.AddIdentity();
         services.AddAuth(configuration);
+
+        services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
 
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IPictureRepository, PictureRepository>();

@@ -1,6 +1,6 @@
 ﻿using DatingLoveApp.DataAccess.Interfaces;
 
-namespace DatingLoveApp.Business.Services;
+namespace DatingLoveApp.DataAccess.Services;
 
 public class DateTimeProvider : IDateTimeProvider
 {

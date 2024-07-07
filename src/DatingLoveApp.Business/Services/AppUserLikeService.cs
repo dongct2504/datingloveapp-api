@@ -1,4 +1,5 @@
 ﻿using DatingLoveApp.Business.Common.Errors;
+using DatingLoveApp.Business.Dtos;
 using DatingLoveApp.Business.Dtos.AppUserLikes;
 using DatingLoveApp.Business.Interfaces;
 using DatingLoveApp.DataAccess.Data;
@@ -39,33 +40,34 @@ public class AppUserLikeService : IAppUserLikeService
         _mapper = mapper;
     }
 
-    public async Task<Result<IEnumerable<LikeDto>>> GetUserLikesAsync(string predicate, string userId)
+    public async Task<Result<PagedList<LikeDto>>> GetUserLikesAsync(AppUserLikeParams likeParams)
     {
-        IQueryable<AppUser> users = _userManager.Users.AsQueryable();
-        IQueryable<AppUserLike> likes = _dbContext.AppUserLikes.AsQueryable();
+        IQueryable<AppUser> usersQuery = _userManager.Users.AsQueryable();
+        IQueryable<AppUserLike> likesQuery = _dbContext.AppUserLikes.AsQueryable();
 
         IEnumerable<Picture> mainPicturesForEachUser = Enumerable.Empty<Picture>();
 
-        if (predicate == "liked") // get people that the user liked
+        if (likeParams.Predicate == "liked") // get people that the user liked
         {
-            string[] userLikedIds = likes
-                .Where(like => like.AppUserSourceId == userId)
+            string[] userLikedIds = likesQuery
+                .Where(like => like.AppUserSourceId == likeParams.UserId)
                 .Select(like => like.AppUserLikedId)
                 .ToArray();
 
-            users = users.Where(u => userLikedIds.Contains(u.Id));
+            usersQuery = usersQuery.Where(u => userLikedIds.Contains(u.Id));
 
             var spec = new MainPicturesByUserIdsSpecification(userLikedIds);
             mainPicturesForEachUser = await _pictureRepository.GetAllWithSpecAsync(spec);
         }
-        else if (predicate == "likedBy") // get people that liked the user
+        else if (likeParams.Predicate == "likedBy") // get people that liked the user
         {
-            string[] likedByOrdersIds = likes
-                .Where(like => like.AppUserLikedId == userId)
+            string[] likedByOrdersIds = likesQuery
+                .Where(like => like.AppUserLikedId == likeParams.UserId)
                 .Select(like => like.AppUserSourceId)
                 .ToArray();
 
-            users = users.Where(u => likedByOrdersIds.Contains(u.Id));
+            usersQuery = usersQuery
+                .Where(u => likedByOrdersIds.Contains(u.Id));
 
             var spec = new MainPicturesByUserIdsSpecification(likedByOrdersIds);
             mainPicturesForEachUser = await _pictureRepository.GetAllWithSpecAsync(spec);
@@ -77,14 +79,20 @@ public class AppUserLikeService : IAppUserLikeService
             return Result.Fail(new BadRequestError(message));
         }
 
-        List<LikeDto> likeDtos = await users.Select(u => new LikeDto
-        {
-            UserId = u.Id,
-            UserName = u.UserName,
-            Nickname = u.Nickname,
-            DateOfBirth = u.DateOfBirth,
-            City = u.City
-        }).ToListAsync();
+        int totalRecords = await usersQuery.CountAsync();
+
+        List<LikeDto> likeDtos = await usersQuery
+            .Select(u => new LikeDto
+            {
+                UserId = u.Id,
+                UserName = u.UserName,
+                Nickname = u.Nickname,
+                DateOfBirth = u.DateOfBirth,
+                City = u.City
+            })
+            .Skip((likeParams.PageNumber - 1) * likeParams.PageSize)
+            .Take(likeParams.PageSize)
+            .ToListAsync();
 
         foreach (LikeDto user in likeDtos)
         {
@@ -92,7 +100,15 @@ public class AppUserLikeService : IAppUserLikeService
                 .FirstOrDefault(p => p.AppUserId == user.UserId)?.ImageUrl;
         }
 
-        return likeDtos;
+        PagedList<LikeDto> pagedList = new PagedList<LikeDto>
+        {
+            PageNumber = likeParams.PageNumber,
+            PageSize = likeParams.PageSize,
+            TotalRecords = totalRecords,
+            Items = likeDtos
+        };
+
+        return pagedList;
     }
 
     public async Task<Result> UpdateLikeAsync(string sourceUserId, string likedUserId)

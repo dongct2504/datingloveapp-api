@@ -1,4 +1,5 @@
 ﻿using Asp.Versioning;
+using DatingLoveApp.Business.Dtos;
 using DatingLoveApp.Business.Dtos.AppUserLikes;
 using DatingLoveApp.Business.Interfaces;
 using DatingLoveApp.DataAccess.Extensions;
@@ -21,11 +22,13 @@ public class AppUserLikesController : ApiController
     }
 
     [HttpGet]
-    [ProducesResponseType(typeof(IEnumerable<LikeDto>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetUserLikes(string predicate)
+    [ProducesResponseType(typeof(PagedList<LikeDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetUserLikes([FromQuery] AppUserLikeParams likeParams)
     {
-        Result<IEnumerable<LikeDto>> getUserLikesResult = await _appUserLikeService
-            .GetUserLikesAsync(predicate, User.GetCurrentUserId());
+        likeParams.UserId = User.GetCurrentUserId();
+
+        Result<PagedList<LikeDto>> getUserLikesResult = await _appUserLikeService
+            .GetUserLikesAsync(likeParams);
 
         if (getUserLikesResult.IsFailed)
         {

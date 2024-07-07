@@ -2,7 +2,6 @@
 using DatingLoveApp.Business.Common.Mapping;
 using DatingLoveApp.Business.Interfaces;
 using DatingLoveApp.Business.Services;
-using DatingLoveApp.DataAccess.Interfaces;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -16,7 +15,6 @@ public static class DependencyInjection
 
         services.AddValidatorsFromAssemblyContaining<IAssemblyMarker>();
 
-        services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IAuthenticationService, AuthenticationService>();
         services.AddScoped<IPictureService, PictureService>();
