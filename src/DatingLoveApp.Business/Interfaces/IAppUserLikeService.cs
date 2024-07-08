@@ -6,7 +6,7 @@ namespace DatingLoveApp.Business.Interfaces;
 
 public interface IAppUserLikeService
 {
-    Task<Result<IEnumerable<LikeDto>>> GetAllUserLikesAsync(string userId, string predicate);
+    Task<Result<List<LikeDto>>> GetAllUserLikesAsync(string userId, string predicate);
 
     Task<Result<PagedList<LikeDto>>> GetUserLikesAsync(AppUserLikeParams likeParams);
 

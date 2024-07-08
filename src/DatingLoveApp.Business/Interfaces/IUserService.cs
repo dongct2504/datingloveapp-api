@@ -14,6 +14,8 @@ public interface IUserService
 
     Task<Result<AppUserDto>> GetCurrentUserAsync(string id);
 
+    Task<Result<List<AppUserDto>>> SearchAsync(string name, string id);
+
     Task<Result> UpdateAsync(UpdateAppUserDto userDto);
 
     Task<Result> RemoveAsync(string id);

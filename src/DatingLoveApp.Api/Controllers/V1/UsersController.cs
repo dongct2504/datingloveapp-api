@@ -62,11 +62,26 @@ public class UsersController : ApiController
 
     [HttpGet("current-user")]
     [ProducesResponseType(typeof(AppUserDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetCurrentUser()
     {
         string id = User.GetCurrentUserId();
 
         Result<AppUserDto> result = await _userService.GetCurrentUserAsync(id);
+        if (result.IsFailed)
+        {
+            return Problem(result.Errors);
+        }
+
+        return Ok(result.Value);
+    }
+
+    [HttpGet("search")]
+    [ProducesResponseType(typeof(List<AppUserDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> Search(string name)
+    {
+        Result<List<AppUserDto>> result = await _userService.SearchAsync(name, User.GetCurrentUserId());
         if (result.IsFailed)
         {
             return Problem(result.Errors);

@@ -22,10 +22,10 @@ public class AppUserLikesController : ApiController
     }
 
     [HttpGet]
-    [ProducesResponseType(typeof(IEnumerable<LikeDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(List<LikeDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllUserLikes(string predicate)
     {
-        Result<IEnumerable<LikeDto>> getAllUserLikeResult = await _appUserLikeService
+        Result<List<LikeDto>> getAllUserLikeResult = await _appUserLikeService
             .GetAllUserLikesAsync(User.GetCurrentUserId(), predicate);
 
         if (getAllUserLikeResult.IsFailed)

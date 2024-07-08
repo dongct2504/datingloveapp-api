@@ -174,6 +174,42 @@ public class UserService : IUserService
         return userDto;
     }
 
+    public async Task<Result<List<AppUserDto>>> SearchAsync(string name, string id)
+    {
+        if (string.IsNullOrEmpty(name))
+        {
+            string message = "Search term cannot be empty.";
+            Log.Warning($"{nameof(SearchAsync)} - {message} - {typeof(UserService)}");
+            return Result.Fail(new BadRequestError(message));
+        }
+
+        IQueryable<AppUser> query = _userManager.Users.AsQueryable();
+
+        query = query.Where(u => u.Id != id);
+
+        query = query.Where(u => u.UserName.Contains(name));
+
+        List<AppUserDto> users = await query
+            .AsNoTracking()
+            .ProjectToType<AppUserDto>()
+            .ToListAsync();
+
+        string[] userIds = users
+            .Select(u => u.Id)
+            .ToArray();
+
+        var spec = new MainPicturesByUserIdsSpecification(userIds);
+        IEnumerable<Picture> mainPictureForEachUser = await _pictureRepository.GetAllWithSpecAsync(spec);
+
+        foreach (AppUserDto userDto in users)
+        {
+            userDto.ProfilePictureUrl = mainPictureForEachUser
+                .FirstOrDefault(p => p.AppUserId == userDto.Id)?.ImageUrl;
+        }
+
+        return users;
+    }
+
     public async Task<Result> UpdateAsync(UpdateAppUserDto updateUserDto)
     {
         AppUser user = await _userManager.FindByIdAsync(updateUserDto.Id);

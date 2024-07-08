@@ -40,7 +40,7 @@ public class AppUserLikeService : IAppUserLikeService
         _mapper = mapper;
     }
 
-    public async Task<Result<IEnumerable<LikeDto>>> GetAllUserLikesAsync(string userId, string predicate)
+    public async Task<Result<List<LikeDto>>> GetAllUserLikesAsync(string userId, string predicate)
     {
         IQueryable<AppUser> usersQuery = _userManager.Users.AsQueryable();
         IQueryable<AppUserLike> likesQuery = _dbContext.AppUserLikes.AsQueryable();
