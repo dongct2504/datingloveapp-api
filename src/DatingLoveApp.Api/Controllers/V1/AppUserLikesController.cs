@@ -22,6 +22,21 @@ public class AppUserLikesController : ApiController
     }
 
     [HttpGet]
+    [ProducesResponseType(typeof(IEnumerable<LikeDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetAllUserLikes(string predicate)
+    {
+        Result<IEnumerable<LikeDto>> getAllUserLikeResult = await _appUserLikeService
+            .GetAllUserLikesAsync(User.GetCurrentUserId(), predicate);
+
+        if (getAllUserLikeResult.IsFailed)
+        {
+            return Problem(getAllUserLikeResult.Errors);
+        }
+
+        return Ok(getAllUserLikeResult.Value);
+    }
+
+    [HttpGet("getUserLikes")]
     [ProducesResponseType(typeof(PagedList<LikeDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetUserLikes([FromQuery] AppUserLikeParams likeParams)
     {

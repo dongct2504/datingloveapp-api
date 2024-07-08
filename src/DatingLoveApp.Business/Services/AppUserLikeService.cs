@@ -40,6 +40,65 @@ public class AppUserLikeService : IAppUserLikeService
         _mapper = mapper;
     }
 
+    public async Task<Result<IEnumerable<LikeDto>>> GetAllUserLikesAsync(string userId, string predicate)
+    {
+        IQueryable<AppUser> usersQuery = _userManager.Users.AsQueryable();
+        IQueryable<AppUserLike> likesQuery = _dbContext.AppUserLikes.AsQueryable();
+
+        IEnumerable<Picture> mainPicturesForEachUser = Enumerable.Empty<Picture>();
+
+        if (predicate == "liked") // get people that the user liked
+        {
+            string[] userLikedIds = likesQuery
+                .Where(like => like.AppUserSourceId == userId)
+                .Select(like => like.AppUserLikedId)
+                .ToArray();
+
+            usersQuery = usersQuery.Where(u => userLikedIds.Contains(u.Id));
+
+            var spec = new MainPicturesByUserIdsSpecification(userLikedIds);
+            mainPicturesForEachUser = await _pictureRepository.GetAllWithSpecAsync(spec);
+        }
+        else if (predicate == "likedBy") // get people that liked the user
+        {
+            string[] likedByOrdersIds = likesQuery
+                .Where(like => like.AppUserLikedId == userId)
+                .Select(like => like.AppUserSourceId)
+                .ToArray();
+
+            usersQuery = usersQuery
+                .Where(u => likedByOrdersIds.Contains(u.Id));
+
+            var spec = new MainPicturesByUserIdsSpecification(likedByOrdersIds);
+            mainPicturesForEachUser = await _pictureRepository.GetAllWithSpecAsync(spec);
+        }
+        else
+        {
+            string message = "Predicate is not valid.";
+            Log.Warning($"{nameof(GetUserLikesAsync)} - {message} - {typeof(AppUserLikeService)}");
+            return Result.Fail(new BadRequestError(message));
+        }
+
+        List<LikeDto> likeDtos = await usersQuery
+            .Select(u => new LikeDto
+            {
+                UserId = u.Id,
+                UserName = u.UserName,
+                Nickname = u.Nickname,
+                DateOfBirth = u.DateOfBirth,
+                City = u.City
+            })
+            .ToListAsync();
+
+        foreach (LikeDto user in likeDtos)
+        {
+            user.ProfilePictureUrl = mainPicturesForEachUser
+                .FirstOrDefault(p => p.AppUserId == user.UserId)?.ImageUrl;
+        }
+
+        return likeDtos;
+    }
+
     public async Task<Result<PagedList<LikeDto>>> GetUserLikesAsync(AppUserLikeParams likeParams)
     {
         IQueryable<AppUser> usersQuery = _userManager.Users.AsQueryable();
