@@ -37,6 +37,7 @@ public static class DependencyInjection
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IPictureRepository, PictureRepository>();
         services.AddScoped<IAppUserLikeRepository, AppUserLikeRepository>();
+        services.AddScoped<IMessageRepository, MessageRepository>();
 
         return services;
     }

@@ -18,6 +18,7 @@ namespace DatingLoveApp.DataAccess.Data
         }
 
         public virtual DbSet<AppUserLike> AppUserLikes { get; set; } = null!;
+        public virtual DbSet<Message> Messages { get; set; } = null!;
         public virtual DbSet<Picture> Pictures { get; set; } = null!;
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -30,6 +31,11 @@ namespace DatingLoveApp.DataAccess.Data
             {
                 entity.HasKey(e => new { e.AppUserSourceId, e.AppUserLikedId })
                     .HasName("PK_APPUSERLIKE");
+            });
+
+            modelBuilder.Entity<Message>(entity =>
+            {
+                entity.Property(e => e.MessageId).ValueGeneratedNever();
             });
 
             modelBuilder.Entity<Picture>(entity =>
