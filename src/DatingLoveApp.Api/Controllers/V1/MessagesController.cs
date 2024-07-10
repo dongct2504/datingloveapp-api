@@ -34,6 +34,15 @@ public class MessagesController : ApiController
         return Ok(pagedList);
     }
 
+    [HttpGet("thread/{id}")]
+    [ProducesResponseType(typeof(List<MessageDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetMessageThread(string id)
+    {
+        string userId = User.GetCurrentUserId();
+        List<MessageDto> messageDtos = await _messageService.GetMessageThreadAsync(userId, id);
+        return Ok(messageDtos);
+    }
+
     [HttpPost]
     [ProducesResponseType(typeof(MessageDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

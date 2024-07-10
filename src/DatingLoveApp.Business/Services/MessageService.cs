@@ -81,10 +81,10 @@ public class MessageService : IMessageService
             .ToArray();
 
         var senderSpec = new MainPicturesByUserIdsSpecification(senderIds);
-        IEnumerable<Picture> senderMainProfiles = await _pictureRepository.GetAllWithSpecAsync(senderSpec);
+        IEnumerable<Picture> senderMainProfiles = await _pictureRepository.GetAllWithSpecAsync(senderSpec, true);
 
         var recipientSpec = new MainPicturesByUserIdsSpecification(recipientIds);
-        IEnumerable<Picture> recipientMainProfiles = await _pictureRepository.GetAllWithSpecAsync(recipientSpec);
+        IEnumerable<Picture> recipientMainProfiles = await _pictureRepository.GetAllWithSpecAsync(recipientSpec, true);
 
         foreach (MessageDto messageDto in messageDtos)
         {
@@ -147,7 +147,7 @@ public class MessageService : IMessageService
 
         var spec = new MainPicturesByUserIdsSpecification(
             new string[2] { messageDto.SenderId, messageDto.RecipientId });
-        IEnumerable<Picture> pictures = await _pictureRepository.GetAllWithSpecAsync(spec);
+        IEnumerable<Picture> pictures = await _pictureRepository.GetAllWithSpecAsync(spec, true);
 
         messageDto.SenderImageUrl = pictures
             .FirstOrDefault(p => p.AppUserId == messageDto.SenderId)?.ImageUrl;
@@ -158,8 +158,47 @@ public class MessageService : IMessageService
         return messageDto;
     }
 
-    public Task<List<MessageDto>> GetMessageThreadAsync(string currentUserId, string receipientId)
+    public async Task<List<MessageDto>> GetMessageThreadAsync(string currentUserId, string recipientId)
     {
-        throw new NotImplementedException();
+        List<Message> messages = await _dbContext.Messages
+            .Where(m =>
+                (m.RecipientId == currentUserId && m.SenderId == recipientId) ||
+                (m.RecipientId == recipientId && m.SenderId == currentUserId))
+            .OrderBy(m => m.MessageSent)
+            .ToListAsync();
+
+        List<Message> unreadMessages = messages
+            .Where(m => m.DateRead == null && m.RecipientId == currentUserId)
+            .ToList();
+
+        if (unreadMessages.Any())
+        {
+            foreach (Message unreadMessage in unreadMessages)
+            {
+                unreadMessage.DateRead = _dateTimeProvider.LocalVietnamDateTimeNow;
+            }
+            await _dbContext.SaveChangesAsync();
+        }
+
+        string[] senderIds = messages.Select(m => m.SenderId).ToArray();
+        string[] recipientIds = messages.Select(m => m.RecipientId).ToArray();
+
+        var senderSpec = new MainPicturesByUserIdsSpecification(senderIds);
+        IEnumerable<Picture> senderMainProfile = await _pictureRepository.GetAllWithSpecAsync(senderSpec, true);
+
+        var recipientSpec = new MainPicturesByUserIdsSpecification(recipientIds);
+        IEnumerable<Picture> recipientMainProfile = await _pictureRepository.GetAllWithSpecAsync(recipientSpec, true);
+
+        List<MessageDto> messageDtos = _mapper.Map<List<MessageDto>>(messages);
+
+        foreach (MessageDto messageDto in messageDtos)
+        {
+            messageDto.SenderImageUrl = senderMainProfile
+                .FirstOrDefault(m => m.AppUserId == messageDto.SenderId)?.ImageUrl;
+            messageDto.RecipientImageUrl = recipientMainProfile
+                .FirstOrDefault(m => m.AppUserId == messageDto.RecipientId)?.ImageUrl;
+        }
+
+        return messageDtos;
     }
 }

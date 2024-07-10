@@ -84,7 +84,7 @@ public class UserService : IUserService
             .ToArray();
 
         var spec = new MainPicturesByUserIdsSpecification(userIds);
-        IEnumerable<Picture> mainPicturesForEachUser = await _pictureRepository.GetAllWithSpecAsync(spec);
+        IEnumerable<Picture> mainPicturesForEachUser = await _pictureRepository.GetAllWithSpecAsync(spec, true);
 
         foreach (AppUserDto user in users)
         {
@@ -199,7 +199,7 @@ public class UserService : IUserService
             .ToArray();
 
         var spec = new MainPicturesByUserIdsSpecification(userIds);
-        IEnumerable<Picture> mainPictureForEachUser = await _pictureRepository.GetAllWithSpecAsync(spec);
+        IEnumerable<Picture> mainPictureForEachUser = await _pictureRepository.GetAllWithSpecAsync(spec, true);
 
         foreach (AppUserDto userDto in users)
         {
