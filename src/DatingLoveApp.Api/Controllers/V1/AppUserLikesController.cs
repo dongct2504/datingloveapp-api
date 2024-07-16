@@ -53,8 +53,16 @@ public class AppUserLikesController : ApiController
         return Ok(getUserLikesResult.Value);
     }
 
+    [HttpGet("{id}")]
+    [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetUserLike(string id)
+    {
+        return Ok(await _appUserLikeService.IsUserLikedAsync(User.GetCurrentUserId(), id));
+    }
+
     [HttpPost("{id}")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> UpdateLike(string id)

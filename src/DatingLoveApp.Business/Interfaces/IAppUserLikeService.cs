@@ -10,5 +10,7 @@ public interface IAppUserLikeService
 
     Task<Result<PagedList<LikeDto>>> GetUserLikesAsync(AppUserLikeParams likeParams);
 
+    Task<bool> IsUserLikedAsync(string userSourceId, string userLikedId);
+
     Task<Result<bool>> UpdateLikeAsync(string sourceUserId, string likedUserId);
 }

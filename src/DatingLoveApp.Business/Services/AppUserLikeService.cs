@@ -8,6 +8,7 @@ using DatingLoveApp.DataAccess.Identity;
 using DatingLoveApp.DataAccess.Interfaces;
 using DatingLoveApp.DataAccess.Specifications.PictureSpecifications;
 using FluentResults;
+using Mapster;
 using MapsterMapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -170,9 +171,19 @@ public class AppUserLikeService : IAppUserLikeService
         return pagedList;
     }
 
-    public async Task<Result<bool>> UpdateLikeAsync(string sourceUserId, string likedUserId)
+    public async Task<bool> IsUserLikedAsync(string userSourceId, string userLikedId)
     {
-        AppUser? sourceUser = await _userManager.FindByIdAsync(sourceUserId);
+        AppUserLike? userLike = await _appUserLikeRepository.GetUserLike(userSourceId, userLikedId);
+        if (userLike == null)
+        {
+            return false;
+        }
+        return true;
+    }
+
+    public async Task<Result<bool>> UpdateLikeAsync(string userSourceId, string userLikedId)
+    {
+        AppUser? sourceUser = await _userManager.FindByIdAsync(userSourceId);
         if (sourceUser == null)
         {
             string message = "Source user not found.";
@@ -180,7 +191,7 @@ public class AppUserLikeService : IAppUserLikeService
             return Result.Fail(new NotFoundError(message));
         }
 
-        AppUser? likedUser = await _userManager.FindByIdAsync(likedUserId);
+        AppUser? likedUser = await _userManager.FindByIdAsync(userLikedId);
         if (likedUser == null)
         {
             string message = "Liked user not found.";
@@ -195,23 +206,23 @@ public class AppUserLikeService : IAppUserLikeService
             return Result.Fail(new BadRequestError(message));
         }
 
-        AppUserLike? userLike = await _appUserLikeRepository.GetUserLike(sourceUserId, likedUserId);
+        AppUserLike? userLike = await _appUserLikeRepository.GetUserLike(userSourceId, userLikedId);
         if (userLike != null)
         {
             await _appUserLikeRepository.RemoveAsync(userLike);
-            return Result.Ok(false);
+            return false;
         }
 
         AppUserLike appUserLike = new AppUserLike
         {
-            AppUserSourceId = sourceUserId,
-            AppUserLikedId = likedUserId,
+            AppUserSourceId = userSourceId,
+            AppUserLikedId = userLikedId,
             CreatedAt = _dateTimeProvider.LocalVietnamDateTimeNow,
             UpdatedAt = _dateTimeProvider.LocalVietnamDateTimeNow
         };
 
         await _appUserLikeRepository.AddAsync(appUserLike);
 
-        return Result.Ok(true);
+        return true;
     }
 }
