@@ -23,6 +23,8 @@ public class ApiController : ControllerBase
                 return Problem(statusCode: StatusCodes.Status400BadRequest, detail: firstError.Message);
             case ConflictError:
                 return Problem(statusCode: StatusCodes.Status409Conflict, detail: firstError.Message);
+            case UnauthorizeError:
+                return Problem(statusCode: StatusCodes.Status401Unauthorized, detail: firstError.Message);
             default:
                 return Problem(statusCode: StatusCodes.Status500InternalServerError, detail: firstError.Message);
         }

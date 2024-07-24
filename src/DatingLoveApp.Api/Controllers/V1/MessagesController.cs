@@ -67,4 +67,19 @@ public class MessagesController : ApiController
 
         return Ok(result.Value);
     }
+
+    [HttpDelete("{id:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> DeleteMessage(Guid id)
+    {
+        Result deleteMessageResult = await _messageService.DeleteMessageAsync(User.GetCurrentUserId(), id);
+        if (deleteMessageResult.IsFailed)
+        {
+            return Problem(deleteMessageResult.Errors);
+        }
+
+        return NoContent();
+    }
 }

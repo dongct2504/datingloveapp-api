@@ -11,4 +11,6 @@ public interface IMessageService
     Task<PagedList<MessageDto>> GetMessagesForUserAsync(MessageParams messageParams);
 
     Task<List<MessageDto>> GetMessageThreadAsync(string currentUserId, string recipientId);
+
+    Task<Result> DeleteMessageAsync(string userId, Guid messageId);
 }

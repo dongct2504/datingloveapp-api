@@ -51,16 +51,18 @@ public class MessageService : IMessageService
         switch (messageParams.Contain)
         {
             case MessageConstants.Inbox:
-                messagesQuery = messagesQuery.Where(m => m.RecipientId == messageParams.Id);
+                messagesQuery = messagesQuery
+                    .Where(m => m.RecipientId == messageParams.Id && !m.RecipientDeleted);
                 break;
 
             case MessageConstants.Outbox:
-                messagesQuery = messagesQuery.Where(m => m.SenderId == messageParams.Id);
+                messagesQuery = messagesQuery
+                    .Where(m => m.SenderId == messageParams.Id && !m.SenderDeleted);
                 break;
 
             case MessageConstants.Unread:
                 messagesQuery = messagesQuery
-                    .Where(m => m.RecipientId == messageParams.Id && m.DateRead == null);
+                    .Where(m => m.RecipientId == messageParams.Id && m.DateRead == null && !m.RecipientDeleted);
                 break;
         }
 
@@ -162,8 +164,8 @@ public class MessageService : IMessageService
     {
         List<Message> messages = await _dbContext.Messages
             .Where(m =>
-                (m.RecipientId == currentUserId && m.SenderId == recipientId) ||
-                (m.RecipientId == recipientId && m.SenderId == currentUserId))
+                (m.RecipientId == currentUserId && m.SenderId == recipientId && !m.RecipientDeleted) ||
+                (m.RecipientId == recipientId && m.SenderId == currentUserId && !m.SenderDeleted))
             .OrderBy(m => m.MessageSent)
             .ToListAsync();
 
@@ -200,5 +202,42 @@ public class MessageService : IMessageService
         }
 
         return messageDtos;
+    }
+
+    public async Task<Result> DeleteMessageAsync(string userId, Guid messageId)
+    {
+        Message? messageFromDb = await _messageRepository.GetAsync(messageId);
+        if (messageFromDb == null)
+        {
+            string message = "Message not found.";
+            Log.Warning($"{nameof(DeleteMessageAsync)} - {message} - {typeof(MessageService)}");
+            return Result.Fail(new NotFoundError(message));
+        }
+
+        if (messageFromDb.SenderId != userId && messageFromDb.RecipientId != userId)
+        {
+            string message = "Unauthorize";
+            Log.Warning($"{nameof(DeleteMessageAsync)} - {message} - {typeof(MessageService)}");
+            return Result.Fail(new UnauthorizeError(message));
+        }
+
+        if (messageFromDb.SenderId == userId)
+        {
+            messageFromDb.SenderDeleted = true;
+        }
+
+        if (messageFromDb.RecipientId == userId)
+        {
+            messageFromDb.RecipientDeleted = true;
+        }
+
+        if (messageFromDb.SenderDeleted && messageFromDb.RecipientDeleted)
+        {
+            await _messageRepository.RemoveAsync(messageFromDb);
+        }
+
+        await _messageRepository.SaveAllAsync();
+
+        return Result.Ok();
     }
 }
