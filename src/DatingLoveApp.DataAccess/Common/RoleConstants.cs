@@ -1,4 +1,4 @@
-﻿namespace DatingLoveApp.Business.Common.Constants;
+﻿namespace DatingLoveApp.DataAccess.Common;
 
 public static class RoleConstants
 {

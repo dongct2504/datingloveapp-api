@@ -95,6 +95,14 @@ public static class DependencyInjection
             };
         });
 
+        services.AddAuthorization(options =>
+        {
+            options.AddPolicy(PolicyConstants.RequiredAdminRole, policy => 
+                policy.RequireRole(RoleConstants.Admin));
+            options.AddPolicy(PolicyConstants.ModeratePictureRole, policy =>
+                policy.RequireRole(RoleConstants.Admin, RoleConstants.Employee));
+        });
+
         return services;
     }
 }

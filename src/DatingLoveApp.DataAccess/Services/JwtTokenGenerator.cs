@@ -33,17 +33,15 @@ public class JwtTokenGenerator : IJwtTokenGenerator
             new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Secret)),
                 SecurityAlgorithms.HmacSha256);
 
-        var roles = await _userManager.GetRolesAsync(user);
-
-        IEnumerable<Claim> roleClaims = roles.Select(r => new Claim(ClaimTypes.Role, r));
-
-        var claims = new Claim[]
+        var claims = new List<Claim>
         {
             new Claim(JwtRegisteredClaimNames.Sub, user.Id),
             new Claim(JwtRegisteredClaimNames.NameId, user.UserName),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-        }
-        .Union(roleClaims);
+        };
+
+        var roles = await _userManager.GetRolesAsync(user);
+        claims.AddRange(roles.Select(r => new Claim(ClaimTypes.Role, r)));
 
         JwtSecurityToken jwtSecurityToken = new JwtSecurityToken(
             issuer: _jwtSettings.Issuer,
