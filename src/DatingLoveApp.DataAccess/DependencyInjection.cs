@@ -44,7 +44,7 @@ public static class DependencyInjection
 
     private static IServiceCollection AddIdentity(this IServiceCollection services)
     {
-        services.AddIdentity<AppUser, IdentityRole>(options =>
+        services.AddIdentity<AppUser, AppRole>(options =>
         {
             // Password settings
             options.Password.RequireDigit = true;
@@ -60,7 +60,8 @@ public static class DependencyInjection
             //options.SignIn.RequireConfirmedEmail = true;
         })
         .AddEntityFrameworkStores<DatingLoveAppIdentityDbContext>()
-        .AddRoleManager<RoleManager<IdentityRole>>()
+        .AddRoleManager<RoleManager<AppRole>>()
+        .AddRoleValidator<RoleValidator<AppRole>>()
         .AddSignInManager<SignInManager<AppUser>>()
         .AddDefaultTokenProviders();
 

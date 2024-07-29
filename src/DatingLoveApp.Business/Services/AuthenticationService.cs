@@ -17,7 +17,7 @@ namespace DatingLoveApp.Business.Services;
 public class AuthenticationService : IAuthenticationService
 {
     private readonly UserManager<AppUser> _userManager;
-    private readonly RoleManager<IdentityRole> _roleManager;
+    private readonly RoleManager<AppRole> _roleManager;
     private readonly IPictureRepository _pictureRepository;
     private readonly SignInManager<AppUser> _signInManager;
     private readonly IJwtTokenGenerator _jwtTokenGenerator;
@@ -28,7 +28,7 @@ public class AuthenticationService : IAuthenticationService
         IMapper mapper,
         IJwtTokenGenerator jwtTokenGenerator,
         UserManager<AppUser> userManager,
-        RoleManager<IdentityRole> roleManager,
+        RoleManager<AppRole> roleManager,
         SignInManager<AppUser> signInManager,
         IPictureRepository pictureRepository,
         IDateTimeProvider dateTimeProvider)
@@ -74,7 +74,7 @@ public class AuthenticationService : IAuthenticationService
         {
             if (!await _roleManager.RoleExistsAsync(roleName))
             {
-                await _roleManager.CreateAsync(new IdentityRole(roleName));
+                await _roleManager.CreateAsync(new AppRole(roleName));
             }
         }
 

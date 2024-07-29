@@ -20,6 +20,7 @@ public static class DependencyInjection
         services.AddScoped<IPictureService, PictureService>();
         services.AddScoped<IAppUserLikeService, AppUserLikeService>();
         services.AddScoped<IMessageService, MessageService>();
+        services.AddScoped<IAdminService, AdminService>();
 
         services.AddScoped<LogUserActivity>();
 

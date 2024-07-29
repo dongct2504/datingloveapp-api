@@ -52,4 +52,6 @@ public class AppUser : IdentityUser
 
     [Column(TypeName = "datetime")]
     public DateTime UpdatedAt { get; set; }
+
+    public ICollection<AppUserRole> AppUserRoles { get; set; } = new List<AppUserRole>();
 }
