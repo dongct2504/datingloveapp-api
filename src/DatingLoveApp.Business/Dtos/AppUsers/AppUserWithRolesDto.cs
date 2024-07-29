@@ -1,6 +1,6 @@
 ﻿namespace DatingLoveApp.Business.Dtos.AppUsers;
 
-public class AppUserWithRoles
+public class AppUserWithRolesDto
 {
     public string Id { get; set; } = null!;
 

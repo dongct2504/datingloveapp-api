@@ -68,6 +68,10 @@ public class UserService : IUserService
             case UserSortConstants.Created:
                 query = query.OrderByDescending(u => u.CreatedAt);
                 break;
+
+            case UserSortConstants.Nickname:
+                query = query.OrderBy(u => u.Nickname);
+                break;
         }
 
         int totalRecords = await query.CountAsync();

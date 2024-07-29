@@ -12,6 +12,9 @@ public class UserMappingConfig : IRegister
 
         config.NewConfig<AppUser, AppUserDetailDto>();
 
+        config.NewConfig<AppUser, AppUserWithRolesDto>()
+            .Map(dest => dest.Roles, src => src.AppUserRoles.Select(ur => ur.AppRole.Name).ToList());
+
         config.NewConfig<UpdateAppUserDto, AppUser>();
     }
 }

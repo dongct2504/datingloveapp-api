@@ -1,8 +1,10 @@
 ﻿using Asp.Versioning;
+using DatingLoveApp.Business.Dtos;
+using DatingLoveApp.Business.Dtos.AdminDtos;
+using DatingLoveApp.Business.Dtos.AppUsers;
+using DatingLoveApp.Business.Interfaces;
 using DatingLoveApp.DataAccess.Common;
-using DatingLoveApp.DataAccess.Identity;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DatingLoveApp.Api.Controllers.V1;
@@ -11,11 +13,19 @@ namespace DatingLoveApp.Api.Controllers.V1;
 [Route("api/v{v:apiVersion}/admin")]
 public class AdminController : ApiController
 {
+    private readonly IAdminService _adminService;
+
+    public AdminController(IAdminService adminService)
+    {
+        _adminService = adminService;
+    }
+
     [HttpGet("users-with-roles")]
     [Authorize(Policy = PolicyConstants.RequiredAdminRole)]
-    public async Task<IActionResult> GetUsersWithRoles()
+    [ProducesResponseType(typeof(PagedList<AppUserWithRolesDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetUsersWithRoles([FromQuery] UsersWithRolesParams usersWithRolesParams)
     {
-        return Ok("only admin can see this");
+        return Ok(await _adminService.GetUsersWithRolesAsync(usersWithRolesParams));
     }
 
     [HttpGet("picture-to-moderate")]

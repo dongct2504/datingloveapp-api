@@ -18,6 +18,6 @@ public class UserParams
 
     public override string ToString()
     {
-        return $"{Gender}-{MinAge}-{MaxAge}-{PageNumber}-{PageSize}";
+        return $"{Gender}-{MinAge}-{MaxAge}-{SortBy}-{PageNumber}-{PageSize}";
     }
 }
