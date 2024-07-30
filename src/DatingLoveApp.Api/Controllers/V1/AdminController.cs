@@ -4,6 +4,7 @@ using DatingLoveApp.Business.Dtos.AdminDtos;
 using DatingLoveApp.Business.Dtos.AppUsers;
 using DatingLoveApp.Business.Interfaces;
 using DatingLoveApp.DataAccess.Common;
+using FluentResults;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -26,6 +27,19 @@ public class AdminController : ApiController
     public async Task<IActionResult> GetUsersWithRoles([FromQuery] UsersWithRolesParams usersWithRolesParams)
     {
         return Ok(await _adminService.GetUsersWithRolesAsync(usersWithRolesParams));
+    }
+
+    [HttpPost("edit-roles/{id}")]
+    [Authorize(Policy = PolicyConstants.RequiredAdminRole)]
+    public async Task<IActionResult> EditRoles(string id, [FromQuery] string roles)
+    {
+        Result<string[]> editRolesResult = await _adminService.EditRolesAsync(id, roles);
+        if (editRolesResult.IsFailed)
+        {
+            return Problem(editRolesResult.Errors);
+        }
+
+        return Ok(editRolesResult.Value);
     }
 
     [HttpGet("picture-to-moderate")]
