@@ -5,6 +5,7 @@ using DatingLoveApp.Business;
 using DatingLoveApp.DataAccess;
 using DatingLoveApp.DataAccess.Data;
 using DatingLoveApp.DataAccess.Identity;
+using DatingLoveApp.DataAccess.SignalR;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
@@ -92,6 +93,7 @@ var app = builder.Build();
 
     app.UseCors(policy => policy
         .AllowAnyHeader()
+        .AllowCredentials()
         .AllowAnyMethod()
         .WithOrigins("http://localhost:4200", "http://datinglove.vutiendat3601.io.vn"));
 
@@ -99,6 +101,7 @@ var app = builder.Build();
     app.UseAuthorization();
 
     app.MapControllers();
+    app.MapHub<PresenceHub>("hubs/presence");
 
     app.Run();
 }

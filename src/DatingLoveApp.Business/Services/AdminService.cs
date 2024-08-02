@@ -93,7 +93,7 @@ public class AdminService : IAdminService
         var result = await _userManager.AddToRolesAsync(user, selectedRoles.Except(userRoles));
         if (!result.Succeeded)
         {
-            string message = "Failed to add roles.";
+            string message = "Failed to add to roles.";
             Log.Warning($"{nameof(EditRolesAsync)} - {message} - {typeof(AdminService)}");
             return Result.Fail(new BadRequestError(message));
         }
@@ -101,7 +101,7 @@ public class AdminService : IAdminService
         result = await _userManager.RemoveFromRolesAsync(user, userRoles.Except(selectedRoles));
         if (!result.Succeeded)
         {
-            string message = "Failed to add roles.";
+            string message = "Failed to remove from roles.";
             Log.Warning($"{nameof(EditRolesAsync)} - {message} - {typeof(AdminService)}");
             return Result.Fail(new BadRequestError(message));
         }
