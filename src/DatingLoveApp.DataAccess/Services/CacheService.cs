@@ -15,6 +15,19 @@ public class CacheService : ICacheService
         _distributedCache = distributedCache;
     }
 
+    public async Task<List<T>> GetByPrefixAsync<T>(
+        string prefixKey,
+        CancellationToken cancellationToken = default) where T : class
+    {
+        IEnumerable<Task<T?>> tasks = CacheKeys.Keys
+            .Where(k => k.StartsWith(prefixKey))
+            .Select(k => GetAsync<T>(k, cancellationToken));
+
+        T?[] results = await Task.WhenAll(tasks);
+
+        return results.Where(r => r != null).Cast<T>().ToList();
+    }
+
     public async Task<T?> GetAsync<T>(string key, CancellationToken cancellationToken = default)
         where T : class
     {

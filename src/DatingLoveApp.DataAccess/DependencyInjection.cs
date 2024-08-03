@@ -23,7 +23,9 @@ public static class DependencyInjection
         // register redis
         services.AddStackExchangeRedisCache(options =>
             options.Configuration = configuration.GetConnectionString("Cache"));
+
         services.AddSingleton<ICacheService, CacheService>();
+        services.AddSingleton<IPresenceTrackerService, PresenceTrackerService>();
 
         // register image service
         services.Configure<CloudinarySettings>(configuration.GetSection(CloudinarySettings.SectionName));
