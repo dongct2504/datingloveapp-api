@@ -3,7 +3,7 @@ using DatingLoveApp.DataAccess.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 
-namespace DatingLoveApp.DataAccess.SignalR;
+namespace DatingLoveApp.Business.SignalR;
 
 [Authorize]
 public class PresenceHub : Hub
