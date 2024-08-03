@@ -4,9 +4,9 @@ namespace DatingLoveApp.DataAccess.Interfaces;
 
 public interface ICacheService
 {
-    Task<List<T>> GetByPrefixAsync<T>(
+    Task<List<string>> GetKeysExcepPrefixAsync(
         string prefixKey,
-        CancellationToken cancellationToken = default) where T : class;
+        CancellationToken cancellationToken = default);
 
     Task<T?> GetAsync<T>(string key, CancellationToken cancellationToken = default) where T : class;
 

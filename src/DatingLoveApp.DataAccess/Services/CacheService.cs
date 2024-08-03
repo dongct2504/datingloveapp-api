@@ -15,17 +15,16 @@ public class CacheService : ICacheService
         _distributedCache = distributedCache;
     }
 
-    public async Task<List<T>> GetByPrefixAsync<T>(
+    public async Task<List<string>> GetKeysExcepPrefixAsync(
         string prefixKey,
-        CancellationToken cancellationToken = default) where T : class
+        CancellationToken cancellationToken = default)
     {
-        IEnumerable<Task<T?>> tasks = CacheKeys.Keys
+        List<string> keys = CacheKeys.Keys
             .Where(k => k.StartsWith(prefixKey))
-            .Select(k => GetAsync<T>(k, cancellationToken));
+            .Select(k => k.Substring(prefixKey.Length + 1)) // exclude the "-"
+            .ToList();
 
-        T?[] results = await Task.WhenAll(tasks);
-
-        return results.Where(r => r != null).Cast<T>().ToList();
+        return await Task.FromResult(keys);
     }
 
     public async Task<T?> GetAsync<T>(string key, CancellationToken cancellationToken = default)

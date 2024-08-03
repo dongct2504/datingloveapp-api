@@ -14,25 +14,22 @@ public class PresenceTrackerService : IPresenceTrackerService
 
     public async Task UserConnectedAsync(string id, string connectedId)
     {
-        List<string>? connectedIds = await _cacheService.GetAsync<List<string>>(id);
+        string key = $"{CacheConstants.Presence}-{id}";
+        List<string>? connectedIds = await _cacheService.GetAsync<List<string>>(key);
 
         if (connectedIds == null)
         {
-            await _cacheService.SetAsync(
-                $"{CacheConstants.Presence}-{id}",
-                new List<string> { connectedId },
-                CacheOptions.PresenceExpiration);
-            return;
+            connectedIds = new List<string>();
         }
 
         connectedIds.Add(connectedId);
-        await _cacheService.SetAsync(id, connectedIds, CacheOptions.PresenceExpiration);
+        await _cacheService.SetAsync(key, connectedIds, CacheOptions.PresenceExpiration);
     }
 
     public async Task UserDisconnectedAsync(string id, string connectedId)
     {
-        List<string>? connectedIds = await _cacheService
-            .GetAsync<List<string>>($"{CacheConstants.Presence}-{id}");
+        string key = $"{CacheConstants.Presence}-{id}";
+        List<string>? connectedIds = await _cacheService.GetAsync<List<string>>(key);
 
         if (connectedIds == null)
         {
@@ -43,18 +40,18 @@ public class PresenceTrackerService : IPresenceTrackerService
 
         if (!connectedIds.Any())
         {
-            await _cacheService.RemoveAsync(id);
+            await _cacheService.RemoveAsync(key);
             return;
         }
 
         await _cacheService.SetAsync(
-            $"{CacheConstants.Presence}-{id}",
+            key,
             connectedIds,
             CacheOptions.PresenceExpiration);
     }
 
     public async Task<List<string>> GetOnlineUsersAsync()
     {
-        return await _cacheService.GetByPrefixAsync<string>(CacheConstants.Presence);
+        return await _cacheService.GetKeysExcepPrefixAsync(CacheConstants.Presence);
     }
 }
