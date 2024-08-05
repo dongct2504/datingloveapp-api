@@ -107,6 +107,35 @@ public class MessageService : IMessageService
         return pagedList;
     }
 
+    public async Task<Result<MessageDto>> ChangeToReadAsync(Guid id)
+    {
+        Message? messageToChange = await _messageRepository.GetAsync(id);
+        if (messageToChange == null)
+        {
+            string message = "Message not found.";
+            Log.Warning($"{nameof(ChangeToReadAsync)} - {message} - {typeof(MessageService)}");
+            return Result.Fail(new NotFoundError(message));
+        }
+
+        messageToChange.DateRead = _dateTimeProvider.LocalVietnamDateTimeNow;
+
+        await _dbContext.SaveChangesAsync();
+
+        MessageDto messageDto = _mapper.Map<MessageDto>(messageToChange);
+
+        var spec = new MainPicturesByUserIdsSpecification(
+            new string[2] { messageDto.SenderId, messageDto.RecipientId });
+        IEnumerable<Picture> pictures = await _pictureRepository.GetAllWithSpecAsync(spec, true);
+
+        messageDto.SenderImageUrl = pictures
+            .FirstOrDefault(p => p.AppUserId == messageDto.SenderId)?.ImageUrl;
+
+        messageDto.RecipientImageUrl = pictures
+            .FirstOrDefault(p => p.AppUserId == messageDto.RecipientId)?.ImageUrl;
+
+        return messageDto;
+    }
+
     public async Task<Result<MessageDto>> CreateMessageAsync(CreateMessageDto createMessageDto)
     {
         AppUser? user = await _userManager.FindByIdAsync(createMessageDto.UserId);

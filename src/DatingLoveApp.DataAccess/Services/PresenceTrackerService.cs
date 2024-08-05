@@ -54,4 +54,38 @@ public class PresenceTrackerService : IPresenceTrackerService
     {
         return await _cacheService.GetKeysExcepPrefixAsync(CacheConstants.Presence);
     }
+
+    public async Task AddUserToGroupAsync(string groupName, string userId)
+    {
+        string groupKey = $"group-{groupName}";
+        List<string> groupMembers = await _cacheService.GetAsync<List<string>>(groupKey) ?? new List<string>();
+        groupMembers.Add(userId);
+
+        await _cacheService.SetAsync(groupKey, groupMembers, CacheOptions.PresenceExpiration);
+    }
+
+    public async Task RemoveUserToGroupAsync(string groupName, string userId)
+    {
+        string groupKey = $"group-{groupName}";
+        List<string>? groupMembers = await _cacheService.GetAsync<List<string>>(groupKey);
+        if (groupMembers != null)
+        {
+            groupMembers.Remove(userId);
+
+            if (!groupMembers.Any())
+            {
+                await _cacheService.RemoveAsync(groupKey);
+            }
+            else
+            {
+                await _cacheService.SetAsync(groupKey, groupMembers, CacheOptions.PresenceExpiration);
+            }
+        }
+    }
+
+    public async Task<List<string>> GetGroupUsersAsync(string groupName)
+    {
+        string groupKey = $"group-{groupName}";
+        return await _cacheService.GetAsync<List<string>>(groupKey) ?? new List<string>();
+    }
 }
