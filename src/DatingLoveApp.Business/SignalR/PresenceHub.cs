@@ -37,8 +37,7 @@ public class PresenceHub : Hub
 
             List<string> currentUsers = await _presenceTrackerService.GetOnlineUsersAsync();
             await Clients.All.SendAsync("GetOnlineUsers", currentUsers);
-
-            await base.OnDisconnectedAsync(exception);
         }
+        await base.OnDisconnectedAsync(exception);
     }
 }
