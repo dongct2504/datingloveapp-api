@@ -24,7 +24,7 @@ public class MessageHub : Hub
         if (httpContext != null && Context.User != null)
         {
             string currentUserId = Context.User.GetCurrentUserId();
-            string otherUserId = httpContext.Request.Query["id"].ToString();
+            string otherUserId = httpContext.Request.Query["otherId"].ToString();
             string groupName = GetGroupName(currentUserId, otherUserId);
             await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
 
