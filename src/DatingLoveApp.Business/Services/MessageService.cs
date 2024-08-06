@@ -3,6 +3,7 @@ using DatingLoveApp.Business.Common.Errors;
 using DatingLoveApp.Business.Dtos;
 using DatingLoveApp.Business.Dtos.MessageDtos;
 using DatingLoveApp.Business.Interfaces;
+using DatingLoveApp.DataAccess.Common;
 using DatingLoveApp.DataAccess.Data;
 using DatingLoveApp.DataAccess.Entities;
 using DatingLoveApp.DataAccess.Identity;
@@ -23,6 +24,7 @@ public class MessageService : IMessageService
     private readonly UserManager<AppUser> _userManager;
     private readonly IMessageRepository _messageRepository;
     private readonly IPictureRepository _pictureRepository;
+    private readonly ICacheService _cacheService;
     private readonly IDateTimeProvider _dateTimeProvider;
     private readonly IMapper _mapper;
 
@@ -32,7 +34,8 @@ public class MessageService : IMessageService
         IMessageRepository messageRepository,
         IMapper mapper,
         IPictureRepository pictureRepository,
-        DatingLoveAppDbContext dbContext)
+        DatingLoveAppDbContext dbContext,
+        ICacheService cacheService)
     {
         _userManager = userManager;
         _dateTimeProvider = dateTimeProvider;
@@ -40,6 +43,7 @@ public class MessageService : IMessageService
         _mapper = mapper;
         _pictureRepository = pictureRepository;
         _dbContext = dbContext;
+        _cacheService = cacheService;
     }
 
     public async Task<PagedList<MessageDto>> GetMessagesForUserAsync(MessageParams messageParams)
@@ -172,6 +176,14 @@ public class MessageService : IMessageService
             MessageSent = _dateTimeProvider.LocalVietnamDateTimeNow
         };
 
+        string groupName = GetGroupName(messageToRecipient.SenderId, messageToRecipient.RecipientId);
+        List<string> groupUsers = await GetGroupUsersAsync(groupName);
+
+        if (groupUsers.Contains(messageToRecipient.RecipientId))
+        {
+            messageToRecipient.DateRead = _dateTimeProvider.LocalVietnamDateTimeNow;
+        }
+
         await _messageRepository.AddAsync(messageToRecipient);
 
         MessageDto messageDto = _mapper.Map<MessageDto>(messageToRecipient);
@@ -268,5 +280,45 @@ public class MessageService : IMessageService
         await _messageRepository.SaveAllAsync();
 
         return Result.Ok();
+    }
+
+    public async Task AddUserToGroupAsync(string groupName, string userId)
+    {
+        string groupKey = $"group-{groupName}";
+        List<string> groupMembers = await _cacheService.GetAsync<List<string>>(groupKey) ?? new List<string>();
+        groupMembers.Add(userId);
+
+        await _cacheService.SetAsync(groupKey, groupMembers, CacheOptions.PresenceExpiration);
+    }
+
+    public async Task RemoveUserFromGroupAsync(string groupName, string userId)
+    {
+        string groupKey = $"group-{groupName}";
+        List<string>? groupMembers = await _cacheService.GetAsync<List<string>>(groupKey);
+        if (groupMembers != null)
+        {
+            groupMembers.Remove(userId);
+
+            if (!groupMembers.Any())
+            {
+                await _cacheService.RemoveAsync(groupKey);
+            }
+            else
+            {
+                await _cacheService.SetAsync(groupKey, groupMembers, CacheOptions.PresenceExpiration);
+            }
+        }
+    }
+
+    public async Task<List<string>> GetGroupUsersAsync(string groupName)
+    {
+        string groupKey = $"group-{groupName}";
+        return await _cacheService.GetAsync<List<string>>(groupKey) ?? new List<string>();
+    }
+
+    private string GetGroupName(string callerId, string otherId)
+    {
+        bool stringCompare = string.CompareOrdinal(callerId, otherId) < 0;
+        return stringCompare ? $"{callerId}-{otherId}" : $"{otherId}-{callerId}";
     }
 }

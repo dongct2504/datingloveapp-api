@@ -15,4 +15,10 @@ public interface IMessageService
     Task<List<MessageDto>> GetMessageThreadAsync(string currentUserId, string recipientId);
 
     Task<Result> DeleteMessageAsync(string userId, Guid messageId);
+
+    Task AddUserToGroupAsync(string groupName, string userId);
+
+    Task RemoveUserFromGroupAsync(string groupName, string userId);
+
+    Task<List<string>> GetGroupUsersAsync(string groupName);
 }
