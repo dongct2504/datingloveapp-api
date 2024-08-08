@@ -3,6 +3,7 @@ using DatingLoveApp.Business.Common.Errors;
 using DatingLoveApp.Business.Dtos;
 using DatingLoveApp.Business.Dtos.MessageDtos;
 using DatingLoveApp.Business.Interfaces;
+using DatingLoveApp.Business.SignalR;
 using DatingLoveApp.DataAccess.Common;
 using DatingLoveApp.DataAccess.Data;
 using DatingLoveApp.DataAccess.Entities;
@@ -13,6 +14,7 @@ using FluentResults;
 using Mapster;
 using MapsterMapper;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 
@@ -24,8 +26,10 @@ public class MessageService : IMessageService
     private readonly UserManager<AppUser> _userManager;
     private readonly IMessageRepository _messageRepository;
     private readonly IPictureRepository _pictureRepository;
+    private readonly IPresenceTrackerService _presenceTrackerService;
     private readonly ICacheService _cacheService;
     private readonly IDateTimeProvider _dateTimeProvider;
+    private readonly IHubContext<PresenceHub> _presenceHubContext;
     private readonly IMapper _mapper;
 
     public MessageService(
@@ -35,7 +39,9 @@ public class MessageService : IMessageService
         IMapper mapper,
         IPictureRepository pictureRepository,
         DatingLoveAppDbContext dbContext,
-        ICacheService cacheService)
+        ICacheService cacheService,
+        IPresenceTrackerService presenceTrackerService,
+        IHubContext<PresenceHub> presenceHubContext)
     {
         _userManager = userManager;
         _dateTimeProvider = dateTimeProvider;
@@ -44,6 +50,8 @@ public class MessageService : IMessageService
         _pictureRepository = pictureRepository;
         _dbContext = dbContext;
         _cacheService = cacheService;
+        _presenceTrackerService = presenceTrackerService;
+        _presenceHubContext = presenceHubContext;
     }
 
     public async Task<PagedList<MessageDto>> GetMessagesForUserAsync(MessageParams messageParams)
@@ -183,6 +191,21 @@ public class MessageService : IMessageService
         {
             messageToRecipient.DateRead = _dateTimeProvider.LocalVietnamDateTimeNow;
         }
+        else
+        {
+            // if the recipient not in the group and also online then send the notification
+            List<string>? connectionIds = await _presenceTrackerService
+                .GetConnectionIdsForUser(messageToRecipient.RecipientId);
+            if (connectionIds != null)
+            {
+                await _presenceHubContext.Clients.Clients(connectionIds).SendAsync("NewMessageReceived",
+                    new
+                    {
+                        senderId = messageToRecipient.SenderId,
+                        senderNickname = user.Nickname
+                    });
+            }
+        }
 
         await _messageRepository.AddAsync(messageToRecipient);
 
@@ -203,20 +226,21 @@ public class MessageService : IMessageService
 
     public async Task<List<MessageDto>> GetMessageThreadAsync(string currentUserId, string recipientId)
     {
-        List<Message> messages = await _dbContext.Messages
+        List<MessageDto> messages = await _dbContext.Messages
             .Where(m =>
                 (m.RecipientId == currentUserId && m.SenderId == recipientId && !m.RecipientDeleted) ||
                 (m.RecipientId == recipientId && m.SenderId == currentUserId && !m.SenderDeleted))
             .OrderBy(m => m.MessageSent)
+            .ProjectToType<MessageDto>()
             .ToListAsync();
 
-        List<Message> unreadMessages = messages
+        List<MessageDto> unreadMessages = messages
             .Where(m => m.DateRead == null && m.RecipientId == currentUserId)
             .ToList();
 
         if (unreadMessages.Any())
         {
-            foreach (Message unreadMessage in unreadMessages)
+            foreach (MessageDto unreadMessage in unreadMessages)
             {
                 unreadMessage.DateRead = _dateTimeProvider.LocalVietnamDateTimeNow;
             }
@@ -232,17 +256,15 @@ public class MessageService : IMessageService
         var recipientSpec = new MainPicturesByUserIdsSpecification(recipientIds);
         IEnumerable<Picture> recipientMainProfile = await _pictureRepository.GetAllWithSpecAsync(recipientSpec, true);
 
-        List<MessageDto> messageDtos = _mapper.Map<List<MessageDto>>(messages);
-
-        foreach (MessageDto messageDto in messageDtos)
+        foreach (MessageDto message in messages)
         {
-            messageDto.SenderImageUrl = senderMainProfile
-                .FirstOrDefault(m => m.AppUserId == messageDto.SenderId)?.ImageUrl;
-            messageDto.RecipientImageUrl = recipientMainProfile
-                .FirstOrDefault(m => m.AppUserId == messageDto.RecipientId)?.ImageUrl;
+            message.SenderImageUrl = senderMainProfile
+                .FirstOrDefault(m => m.AppUserId == message.SenderId)?.ImageUrl;
+            message.RecipientImageUrl = recipientMainProfile
+                .FirstOrDefault(m => m.AppUserId == message.RecipientId)?.ImageUrl;
         }
 
-        return messageDtos;
+        return messages;
     }
 
     public async Task<Result> DeleteMessageAsync(string userId, Guid messageId)

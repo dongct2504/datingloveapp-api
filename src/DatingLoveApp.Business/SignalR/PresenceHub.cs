@@ -19,11 +19,15 @@ public class PresenceHub : Hub
     {
         if (Context.User != null)
         {
-            await _presenceTrackerService.UserConnectedAsync(Context.User.GetCurrentUserId(), Context.ConnectionId);
-            await Clients.Others.SendAsync("UserIsOnline", Context.User.GetCurrentUserId());
+            bool isOnline = await _presenceTrackerService
+                .UserConnectedAsync(Context.User.GetCurrentUserId(), Context.ConnectionId);
+            if (isOnline)
+            {
+                await Clients.Others.SendAsync("UserIsOnline", Context.User.GetCurrentUserId());
+            }
 
-            List<string> currentUsers = await _presenceTrackerService.GetOnlineUsersAsync();
-            await Clients.All.SendAsync("GetOnlineUsers", currentUsers);
+            List<string> currentUsers = await _presenceTrackerService.GetOnlineUserIdsAsync();
+            await Clients.Caller.SendAsync("GetOnlineUsers", currentUsers);
         }
     }
 
@@ -31,12 +35,12 @@ public class PresenceHub : Hub
     {
         if (Context.User != null)
         {
-            await _presenceTrackerService
+            bool isOffline = await _presenceTrackerService
                 .UserDisconnectedAsync(Context.User.GetCurrentUserId(), Context.ConnectionId);
-            await Clients.Others.SendAsync("UserIsOffline", Context.User.GetCurrentUserId());
-
-            List<string> currentUsers = await _presenceTrackerService.GetOnlineUsersAsync();
-            await Clients.All.SendAsync("GetOnlineUsers", currentUsers);
+            if (isOffline)
+            {
+                await Clients.Others.SendAsync("UserIsOffline", Context.User.GetCurrentUserId());
+            }
         }
         await base.OnDisconnectedAsync(exception);
     }
