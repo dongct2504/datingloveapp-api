@@ -247,20 +247,15 @@ public class MessageService : IMessageService
             await _dbContext.SaveChangesAsync();
         }
 
-        string[] senderIds = messages.Select(m => m.SenderId).ToArray();
-        string[] recipientIds = messages.Select(m => m.RecipientId).ToArray();
-
-        var senderSpec = new MainPicturesByUserIdsSpecification(senderIds);
-        IEnumerable<Picture> senderMainProfile = await _pictureRepository.GetAllWithSpecAsync(senderSpec, true);
-
-        var recipientSpec = new MainPicturesByUserIdsSpecification(recipientIds);
-        IEnumerable<Picture> recipientMainProfile = await _pictureRepository.GetAllWithSpecAsync(recipientSpec, true);
+        var spec = new MainPicturesByUserIdsSpecification(
+            new string[] { currentUserId, recipientId });
+        IEnumerable<Picture> mainProfile = await _pictureRepository.GetAllWithSpecAsync(spec, true);
 
         foreach (MessageDto message in messages)
         {
-            message.SenderImageUrl = senderMainProfile
+            message.SenderImageUrl = mainProfile
                 .FirstOrDefault(m => m.AppUserId == message.SenderId)?.ImageUrl;
-            message.RecipientImageUrl = recipientMainProfile
+            message.RecipientImageUrl = mainProfile
                 .FirstOrDefault(m => m.AppUserId == message.RecipientId)?.ImageUrl;
         }
 
