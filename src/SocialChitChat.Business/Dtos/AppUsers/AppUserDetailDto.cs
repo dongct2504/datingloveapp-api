@@ -4,7 +4,7 @@ namespace SocialChitChat.Business.Dtos.AppUsers;
 
 public class AppUserDetailDto
 {
-    public string Id { get; set; } = null!;
+    public Guid Id { get; set; }
 
     public string? FirstName { get; set; }
 

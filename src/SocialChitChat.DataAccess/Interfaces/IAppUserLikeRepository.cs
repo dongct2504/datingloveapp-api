@@ -4,7 +4,7 @@ namespace SocialChitChat.DataAccess.Interfaces;
 
 public interface IAppUserLikeRepository : IRepository<AppUserLike>
 {
-    Task<AppUserLike?> GetUserLike(string sorceUserId, string likedUserId);
+    Task<AppUserLike?> GetUserLike(Guid sorceUserId, Guid likedUserId);
 
-    Task UpdateAsync(AppUserLike appUserLike);
+    void Update(AppUserLike appUserLike);
 }

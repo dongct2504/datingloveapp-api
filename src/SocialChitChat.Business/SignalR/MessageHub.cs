@@ -1,9 +1,11 @@
 ﻿using FluentResults;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
+using SocialChitChat.Business.Common;
 using SocialChitChat.Business.Dtos.MessageDtos;
 using SocialChitChat.Business.Interfaces;
 using SocialChitChat.DataAccess.Extensions;
+using SocialChitChat.DataAccess.Interfaces;
 
 namespace SocialChitChat.Business.SignalR;
 
@@ -11,10 +13,12 @@ namespace SocialChitChat.Business.SignalR;
 public class MessageHub : Hub
 {
     private readonly IMessageService _messageService;
+    private readonly IPresenceTrackerService _presenceTrackerService;
 
-    public MessageHub(IMessageService messageService)
+    public MessageHub(IMessageService messageService, IPresenceTrackerService presenceTrackerService)
     {
         _messageService = messageService;
+        _presenceTrackerService = presenceTrackerService;
     }
 
     public override async Task OnConnectedAsync()
@@ -23,12 +27,12 @@ public class MessageHub : Hub
 
         if (httpContext != null && Context.User != null)
         {
-            string currentUserId = Context.User.GetCurrentUserId();
-            string otherUserId = httpContext.Request.Query["otherId"].ToString();
-            string groupName = GetGroupName(currentUserId, otherUserId);
+            Guid currentUserId = Context.User.GetCurrentUserId();
+            Guid otherUserId = Guid.Parse(httpContext.Request.Query["otherId"].ToString());
 
+            string groupName = Utils.GetGroupName(new Guid[] { currentUserId, otherUserId });
             await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
-            await _messageService.AddUserToGroupAsync(groupName, currentUserId);
+            await _presenceTrackerService.AddUserToGroupAsync(groupName, currentUserId);
 
             List<MessageDto> messages = await _messageService.GetMessageThreadAsync(currentUserId, otherUserId);
             await Clients.Group(groupName).SendAsync("ReceiveMessageThread", messages);
@@ -41,37 +45,35 @@ public class MessageHub : Hub
 
         if (httpContext != null && Context.User != null)
         {
-            string currentUserId = Context.User.GetCurrentUserId();
-            string otherUserId = httpContext.Request.Query["otherId"].ToString();
-            string groupName = GetGroupName(currentUserId, otherUserId);
-            await _messageService.RemoveUserFromGroupAsync(groupName, currentUserId);
+            Guid currentUserId = Context.User.GetCurrentUserId();
+            Guid otherUserId = Guid.Parse(httpContext.Request.Query["otherId"].ToString());
+
+            string groupName = Utils.GetGroupName(new Guid[] { currentUserId, otherUserId });
+            await _presenceTrackerService.RemoveUserFromGroupAsync(groupName, currentUserId);
         }
 
         await base.OnDisconnectedAsync(exception);
     }
 
-    public async Task SendMessageAsync(CreateMessageDto createMessageDto)
+    public async Task SendMessageAsync(SendMessageDto createMessageDto)
     {
         if (Context.User == null)
         {
             return;
         }
 
-        createMessageDto.UserId = Context.User.GetCurrentUserId();
+        createMessageDto.SenderId = Context.User.GetCurrentUserId();
 
-        Result<MessageDto> result = await _messageService.CreateMessageAsync(createMessageDto);
+        Result<MessageDto> result = await _messageService.SendMessageToRecipientAsync(createMessageDto);
         if (result.IsFailed)
         {
             throw new HubException(result.Errors.First().Message);
         }
 
-        string groupName = GetGroupName(result.Value.SenderId, result.Value.RecipientId);
+        string groupName = Utils.GetGroupName(new Guid[]
+        {
+            createMessageDto.SenderId, createMessageDto.RecipientId
+        });
         await Clients.Group(groupName).SendAsync("NewMessage", result.Value);
-    }
-
-    private string GetGroupName(string callerId, string otherId)
-    {
-        bool stringCompare = string.CompareOrdinal(callerId, otherId) < 0;
-        return stringCompare ? $"{callerId}-{otherId}" : $"{otherId}-{callerId}";
     }
 }

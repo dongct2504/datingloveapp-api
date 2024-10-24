@@ -2,81 +2,68 @@
 using MapsterMapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Serilog;
+using Microsoft.Extensions.Logging;
+using SocialChitChat.Business.Common.Constants;
 using SocialChitChat.Business.Common.Errors;
 using SocialChitChat.Business.Dtos;
 using SocialChitChat.Business.Dtos.AppUserLikes;
 using SocialChitChat.Business.Interfaces;
 using SocialChitChat.DataAccess.Data;
 using SocialChitChat.DataAccess.Entities.AutoGenEntities;
+using SocialChitChat.DataAccess.Extensions;
 using SocialChitChat.DataAccess.Identity;
 using SocialChitChat.DataAccess.Interfaces;
-using SocialChitChat.DataAccess.Specifications.PictureSpecifications;
 
 namespace SocialChitChat.Business.Services;
 
 public class AppUserLikeService : IAppUserLikeService
 {
-    private readonly DatingLoveAppDbContext _dbContext;
-    private readonly IAppUserLikeRepository _appUserLikeRepository;
-    private readonly IPictureRepository _pictureRepository;
+    private readonly SocialChitChatDbContext _dbContext;
+    private readonly IUnitOfWork _unitOfWork;
     private readonly UserManager<AppUser> _userManager;
     private readonly IDateTimeProvider _dateTimeProvider;
+    private readonly ILogger<AppUserLikeService> _logger;
     private readonly IMapper _mapper;
 
     public AppUserLikeService(
-        DatingLoveAppDbContext dbContext,
+        SocialChitChatDbContext dbContext,
         UserManager<AppUser> userManager,
-        IPictureRepository pictureRepository,
-        IAppUserLikeRepository appUserLikeRepository,
         IDateTimeProvider dateTimeProvider,
-        IMapper mapper)
+        IMapper mapper,
+        IUnitOfWork unitOfWork,
+        ILogger<AppUserLikeService> logger)
     {
         _dbContext = dbContext;
         _userManager = userManager;
-        _pictureRepository = pictureRepository;
-        _appUserLikeRepository = appUserLikeRepository;
         _dateTimeProvider = dateTimeProvider;
         _mapper = mapper;
+        _unitOfWork = unitOfWork;
+        _logger = logger;
     }
 
-    public async Task<Result<List<LikeDto>>> GetAllUserLikesAsync(string userId, string predicate)
+    public async Task<Result<List<LikeDto>>> GetAllUserLikesAsync(Guid userId, string predicate)
     {
         IQueryable<AppUser> usersQuery = _userManager.Users.AsQueryable();
         IQueryable<AppUserLike> likesQuery = _dbContext.AppUserLikes.AsQueryable();
 
-        IEnumerable<Picture> mainPicturesForEachUser = Enumerable.Empty<Picture>();
+        List<AppUser> user = new List<AppUser>();
 
         if (predicate == "liked") // get people that the user liked
         {
-            string[] userLikedIds = likesQuery
+            usersQuery = likesQuery
                 .Where(like => like.AppUserSourceId == userId)
-                .Select(like => like.AppUserLikedId)
-                .ToArray();
-
-            usersQuery = usersQuery.Where(u => userLikedIds.Contains(u.Id));
-
-            var spec = new MainPicturesByUserIdsSpecification(userLikedIds);
-            mainPicturesForEachUser = await _pictureRepository.GetAllWithSpecAsync(spec);
+                .Select(like => like.AppUserSource);
         }
         else if (predicate == "likedBy") // get people that liked the user
         {
-            string[] likedByOrdersIds = likesQuery
+            usersQuery = likesQuery
                 .Where(like => like.AppUserLikedId == userId)
-                .Select(like => like.AppUserSourceId)
-                .ToArray();
-
-            usersQuery = usersQuery
-                .Where(u => likedByOrdersIds.Contains(u.Id));
-
-            var spec = new MainPicturesByUserIdsSpecification(likedByOrdersIds);
-            mainPicturesForEachUser = await _pictureRepository.GetAllWithSpecAsync(spec);
+                .Select(like => like.AppUserLiked);
         }
         else
         {
-            string message = "Predicate is not valid.";
-            Log.Warning($"{nameof(GetUserLikesAsync)} - {message} - {typeof(AppUserLikeService)}");
-            return Result.Fail(new BadRequestError(message));
+            _logger.LogWarning($"{nameof(GetUserLikesAsync)} - {ErrorMessageConsts.InvalidPredicate} - {typeof(AppUserLikeService)}");
+            return Result.Fail(new BadRequestError(ErrorMessageConsts.InvalidPredicate));
         }
 
         List<LikeDto> likeDtos = await usersQuery
@@ -85,16 +72,11 @@ public class AppUserLikeService : IAppUserLikeService
                 UserId = u.Id,
                 UserName = u.UserName,
                 Nickname = u.Nickname,
+                ProfilePictureUrl = u.GetMainProfilePictureUrl(),
                 DateOfBirth = u.DateOfBirth,
                 City = u.City
             })
             .ToListAsync();
-
-        foreach (LikeDto user in likeDtos)
-        {
-            user.ProfilePictureUrl = mainPicturesForEachUser
-                .FirstOrDefault(p => p.AppUserId == user.UserId)?.ImageUrl;
-        }
 
         return likeDtos;
     }
@@ -108,34 +90,20 @@ public class AppUserLikeService : IAppUserLikeService
 
         if (likeParams.Predicate == "liked") // get people that the user liked
         {
-            string[] userLikedIds = likesQuery
+            usersQuery = likesQuery
                 .Where(like => like.AppUserSourceId == likeParams.UserId)
-                .Select(like => like.AppUserLikedId)
-                .ToArray();
-
-            usersQuery = usersQuery.Where(u => userLikedIds.Contains(u.Id));
-
-            var spec = new MainPicturesByUserIdsSpecification(userLikedIds);
-            mainPicturesForEachUser = await _pictureRepository.GetAllWithSpecAsync(spec);
+                .Select(like => like.AppUserSource);
         }
         else if (likeParams.Predicate == "likedBy") // get people that liked the user
         {
-            string[] likedByOrdersIds = likesQuery
+            usersQuery = likesQuery
                 .Where(like => like.AppUserLikedId == likeParams.UserId)
-                .Select(like => like.AppUserSourceId)
-                .ToArray();
-
-            usersQuery = usersQuery
-                .Where(u => likedByOrdersIds.Contains(u.Id));
-
-            var spec = new MainPicturesByUserIdsSpecification(likedByOrdersIds);
-            mainPicturesForEachUser = await _pictureRepository.GetAllWithSpecAsync(spec);
+                .Select(like => like.AppUserLiked);
         }
         else
         {
-            string message = "Predicate is not valid.";
-            Log.Warning($"{nameof(GetUserLikesAsync)} - {message} - {typeof(AppUserLikeService)}");
-            return Result.Fail(new BadRequestError(message));
+            _logger.LogWarning($"{nameof(GetUserLikesAsync)} - {ErrorMessageConsts.InvalidPredicate} - {typeof(AppUserLikeService)}");
+            return Result.Fail(new BadRequestError(ErrorMessageConsts.InvalidPredicate));
         }
 
         int totalRecords = await usersQuery.CountAsync();
@@ -146,18 +114,13 @@ public class AppUserLikeService : IAppUserLikeService
                 UserId = u.Id,
                 UserName = u.UserName,
                 Nickname = u.Nickname,
+                ProfilePictureUrl = u.GetMainProfilePictureUrl(),
                 DateOfBirth = u.DateOfBirth,
                 City = u.City
             })
             .Skip((likeParams.PageNumber - 1) * likeParams.PageSize)
             .Take(likeParams.PageSize)
             .ToListAsync();
-
-        foreach (LikeDto user in likeDtos)
-        {
-            user.ProfilePictureUrl = mainPicturesForEachUser
-                .FirstOrDefault(p => p.AppUserId == user.UserId)?.ImageUrl;
-        }
 
         PagedList<LikeDto> pagedList = new PagedList<LikeDto>
         {
@@ -170,9 +133,9 @@ public class AppUserLikeService : IAppUserLikeService
         return pagedList;
     }
 
-    public async Task<bool> IsUserLikedAsync(string userSourceId, string userLikedId)
+    public async Task<bool> IsUserLikedAsync(Guid userSourceId, Guid userLikedId)
     {
-        AppUserLike? userLike = await _appUserLikeRepository.GetUserLike(userSourceId, userLikedId);
+        AppUserLike? userLike = await _unitOfWork.AppUserLikes.GetUserLike(userSourceId, userLikedId);
         if (userLike == null)
         {
             return false;
@@ -180,35 +143,33 @@ public class AppUserLikeService : IAppUserLikeService
         return true;
     }
 
-    public async Task<Result<bool>> UpdateLikeAsync(string userSourceId, string userLikedId)
+    public async Task<Result<bool>> UpdateLikeAsync(Guid userSourceId, Guid userLikedId)
     {
-        AppUser? sourceUser = await _userManager.FindByIdAsync(userSourceId);
+        AppUser? sourceUser = await _userManager.FindByIdAsync(userSourceId.ToString());
         if (sourceUser == null)
         {
-            string message = "Source user not found.";
-            Log.Warning($"{nameof(UpdateLikeAsync)} - {message} - {typeof(AppUserLikeService)}");
-            return Result.Fail(new NotFoundError(message));
+            _logger.LogWarning($"{nameof(UpdateLikeAsync)} - {ErrorMessageConsts.SourceUserNotFound} - {typeof(AppUserLikeService)}");
+            return Result.Fail(new NotFoundError(ErrorMessageConsts.SourceUserNotFound));
         }
 
-        AppUser? likedUser = await _userManager.FindByIdAsync(userLikedId);
+        AppUser? likedUser = await _userManager.FindByIdAsync(userLikedId.ToString());
         if (likedUser == null)
         {
-            string message = "Liked user not found.";
-            Log.Warning($"{nameof(UpdateLikeAsync)} - {message} - {typeof(AppUserLikeService)}");
-            return Result.Fail(new NotFoundError(message));
+            _logger.LogWarning($"{nameof(UpdateLikeAsync)} - {ErrorMessageConsts.LikedUserNotFound} - {typeof(AppUserLikeService)}");
+            return Result.Fail(new NotFoundError(ErrorMessageConsts.LikedUserNotFound));
         }
 
-        if (sourceUser.UserName == likedUser.UserName)
+        if (sourceUser.Id == likedUser.Id)
         {
-            string message = "You can not like yourself.";
-            Log.Warning($"{nameof(UpdateLikeAsync)} - {message} - {typeof(AppUserLikeService)}");
-            return Result.Fail(new BadRequestError(message));
+            _logger.LogWarning($"{nameof(UpdateLikeAsync)} - {ErrorMessageConsts.LikeYourselfError} - {typeof(AppUserLikeService)}");
+            return Result.Fail(new BadRequestError(ErrorMessageConsts.LikeYourselfError));
         }
 
-        AppUserLike? userLike = await _appUserLikeRepository.GetUserLike(userSourceId, userLikedId);
+        AppUserLike? userLike = await _unitOfWork.AppUserLikes.GetUserLike(userSourceId, userLikedId);
         if (userLike != null)
         {
-            await _appUserLikeRepository.RemoveAsync(userLike);
+            _unitOfWork.AppUserLikes.Remove(userLike);
+            await _unitOfWork.SaveChangesAsync();
             return false;
         }
 
@@ -216,12 +177,11 @@ public class AppUserLikeService : IAppUserLikeService
         {
             AppUserSourceId = userSourceId,
             AppUserLikedId = userLikedId,
-            CreatedAt = _dateTimeProvider.LocalVietnamDateTimeNow,
-            UpdatedAt = _dateTimeProvider.LocalVietnamDateTimeNow
+            CreatedAt = _dateTimeProvider.LocalVietnamDateTimeNow
         };
 
-        await _appUserLikeRepository.AddAsync(appUserLike);
-
+        _unitOfWork.AppUserLikes.Add(appUserLike);
+        await _unitOfWork.SaveChangesAsync();
         return true;
     }
 }

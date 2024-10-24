@@ -34,11 +34,11 @@ public class MessagesController : ApiController
         return Ok(pagedList);
     }
 
-    [HttpGet("thread/{id}")]
+    [HttpGet("thread/{id:guid}")]
     [ProducesResponseType(typeof(List<MessageDto>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetMessageThread(string id)
+    public async Task<IActionResult> GetMessageThread(Guid id)
     {
-        string userId = User.GetCurrentUserId();
+        Guid userId = User.GetCurrentUserId();
         List<MessageDto> messageDtos = await _messageService.GetMessageThreadAsync(userId, id);
         return Ok(messageDtos);
     }
@@ -47,19 +47,19 @@ public class MessagesController : ApiController
     [ProducesResponseType(typeof(MessageDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> CreateMessage(
-        [FromBody] CreateMessageDto createMessageDto,
-        [FromServices] IValidator<CreateMessageDto> validator)
+    public async Task<IActionResult> SendMessageToRecipient(
+        [FromBody] SendMessageDto sendMessageDto,
+        [FromServices] IValidator<SendMessageDto> validator)
     {
-        createMessageDto.UserId = User.GetCurrentUserId();
+        sendMessageDto.SenderId = User.GetCurrentUserId();
 
-        ValidationResult validationResult = await validator.ValidateAsync(createMessageDto);
+        ValidationResult validationResult = await validator.ValidateAsync(sendMessageDto);
         if (!validationResult.IsValid)
         {
             return Problem(validationResult.Errors);
         }
 
-        Result<MessageDto> result = await _messageService.CreateMessageAsync(createMessageDto);
+        Result<MessageDto> result = await _messageService.SendMessageToRecipientAsync(sendMessageDto);
         if (result.IsFailed)
         {
             return Problem(result.Errors);

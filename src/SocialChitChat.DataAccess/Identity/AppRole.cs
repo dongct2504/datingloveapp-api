@@ -2,7 +2,7 @@
 
 namespace SocialChitChat.DataAccess.Identity;
 
-public class AppRole : IdentityRole<string>
+public class AppRole : IdentityRole<Guid>
 {
     public AppRole() : base()
     {

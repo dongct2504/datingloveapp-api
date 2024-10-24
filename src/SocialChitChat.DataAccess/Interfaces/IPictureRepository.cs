@@ -4,5 +4,5 @@ namespace SocialChitChat.DataAccess.Interfaces;
 
 public interface IPictureRepository : IRepository<Picture>
 {
-    Task UpdateAsync(Picture picture);
+    void Update(Picture picture);
 }

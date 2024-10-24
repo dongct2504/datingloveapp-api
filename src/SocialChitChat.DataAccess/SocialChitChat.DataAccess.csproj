@@ -23,6 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Identity\Migrations\" />
     <Folder Include="Specifications\UserSpecifications\" />
   </ItemGroup>
 

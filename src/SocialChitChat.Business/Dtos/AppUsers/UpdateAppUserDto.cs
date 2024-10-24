@@ -2,7 +2,7 @@
 
 public class UpdateAppUserDto
 {
-    public string Id { get; set; } = null!;
+    public Guid Id { get; set; }
 
     public string? FirstName { get; set; }
 
@@ -21,6 +21,4 @@ public class UpdateAppUserDto
     public string? District { get; set; }
 
     public string? City { get; set; }
-
-    public string? Role { get; set; }
 }

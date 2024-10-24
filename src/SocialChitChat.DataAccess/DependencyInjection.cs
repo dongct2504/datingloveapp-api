@@ -5,9 +5,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using SocialChitChat.DataAccess.Common;
+using SocialChitChat.DataAccess.Data;
 using SocialChitChat.DataAccess.Identity;
 using SocialChitChat.DataAccess.Interfaces;
-using SocialChitChat.DataAccess.Repositories;
 using SocialChitChat.DataAccess.Services;
 using System.Text;
 
@@ -38,10 +38,7 @@ public static class DependencyInjection
 
         services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
 
-        services.AddScoped<IUserRepository, UserRepository>();
-        services.AddScoped<IPictureRepository, PictureRepository>();
-        services.AddScoped<IAppUserLikeRepository, AppUserLikeRepository>();
-        services.AddScoped<IMessageRepository, MessageRepository>();
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         return services;
     }
@@ -63,7 +60,7 @@ public static class DependencyInjection
             // Sign-in settings
             //options.SignIn.RequireConfirmedEmail = true;
         })
-        .AddEntityFrameworkStores<DatingLoveAppIdentityDbContext>()
+        .AddEntityFrameworkStores<SocialChitChatDbContext>()
         .AddRoleManager<RoleManager<AppRole>>()
         .AddRoleValidator<RoleValidator<AppRole>>()
         .AddSignInManager<SignInManager<AppUser>>()

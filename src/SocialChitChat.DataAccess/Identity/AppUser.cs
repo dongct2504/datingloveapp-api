@@ -1,11 +1,11 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
+using SocialChitChat.DataAccess.Entities.AutoGenEntities;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SocialChitChat.DataAccess.Identity;
 
-public class AppUser : IdentityUser
+public class AppUser : IdentityUser<Guid>
 {
     [StringLength(30)]
     public string? FirstName { get; set; }
@@ -16,9 +16,7 @@ public class AppUser : IdentityUser
     [StringLength(50)]
     public string Nickname { get; set; } = null!;
 
-    [StringLength(10)]
-    [Unicode(false)]
-    public string Gender { get; set; } = null!;
+    public byte Gender { get; set; }
 
     [Column(TypeName = "datetime")]
     public DateTime DateOfBirth { get; set; }
@@ -48,10 +46,19 @@ public class AppUser : IdentityUser
     public string? City { get; set; }
 
     [Column(TypeName = "datetime")]
-    public DateTime CreatedAt { get; set; }
+    public DateTime? CreatedAt { get; set; }
 
     [Column(TypeName = "datetime")]
-    public DateTime UpdatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
 
     public ICollection<AppUserRole> AppUserRoles { get; set; } = new List<AppUserRole>();
+
+    public ICollection<AppUserLike> AppUserLikes { get; set; } = new List<AppUserLike>();
+    public ICollection<AppUserLike> LikedByUsers { get; set; } = new List<AppUserLike>();
+
+    public ICollection<Picture> Pictures { get; set; } = new List<Picture>();
+
+    public ICollection<Message> Messages { get; set; } = new List<Message>();
+
+    public ICollection<Participant> Participants { get; set; } = new List<Participant>();
 }

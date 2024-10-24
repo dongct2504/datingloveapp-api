@@ -4,5 +4,5 @@ namespace SocialChitChat.DataAccess.Interfaces;
 
 public interface IMessageRepository : IRepository<Message>
 {
-    Task UpdateAsync(Message message);
+    void Update(Message message);
 }
