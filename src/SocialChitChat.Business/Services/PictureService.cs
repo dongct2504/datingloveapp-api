@@ -3,7 +3,7 @@ using FluentResults;
 using MapsterMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
-using Serilog;
+using Microsoft.Extensions.Logging;
 using SocialChitChat.Business.Common.Constants;
 using SocialChitChat.Business.Common.Errors;
 using SocialChitChat.Business.Dtos.PictureDtos;
@@ -17,34 +17,36 @@ namespace SocialChitChat.Business.Services;
 
 public class PictureService : IPictureService
 {
+    private readonly IUnitOfWork _unitOfWork;
     private readonly UserManager<AppUser> _userManager;
-    private readonly IPictureRepository _pictureRepository;
     private readonly IFileStorageService _fileStorageService;
     private readonly IDateTimeProvider _dateTimeProvider;
+    private readonly ILogger<PictureService> _logger;
     private readonly IMapper _mapper;
 
     public PictureService(
         UserManager<AppUser> userManager,
-        IPictureRepository pictureRepository,
         IFileStorageService fileStorageService,
         IMapper mapper,
-        IDateTimeProvider dateTimeProvider)
+        IDateTimeProvider dateTimeProvider,
+        IUnitOfWork unitOfWork,
+        ILogger<PictureService> logger)
     {
         _userManager = userManager;
-        _pictureRepository = pictureRepository;
         _fileStorageService = fileStorageService;
         _mapper = mapper;
         _dateTimeProvider = dateTimeProvider;
+        _unitOfWork = unitOfWork;
+        _logger = logger;
     }
 
-    public async Task<Result<PictureDto>> UploadPictureAsync(string id, IFormFile imageFile)
+    public async Task<Result<PictureDto>> UploadPictureAsync(Guid id, IFormFile imageFile)
     {
-        AppUser? user = await _userManager.FindByIdAsync(id);
+        AppUser? user = await _userManager.FindByIdAsync(id.ToString());
         if (user == null)
         {
-            string message = "User not found.";
-            Log.Warning($"{nameof(UploadPictureAsync)} - {message} - {typeof(PictureService)}");
-            return Result.Fail(new NotFoundError(message));
+            _logger.LogWarning($"{nameof(UploadPictureAsync)} - {ErrorMessageConsts.UserNotFound} - {typeof(PictureService)}");
+            return Result.Fail(new NotFoundError(ErrorMessageConsts.UserNotFound));
         }
 
         UploadResult uploadResult = await _fileStorageService.UploadImageAsync(imageFile,
@@ -52,13 +54,13 @@ public class PictureService : IPictureService
         if (uploadResult.Error != null)
         {
             string message = uploadResult.Error.Message;
-            Log.Warning($"{nameof(UploadPictureAsync)} - {message} - {typeof(PictureService)}");
+            _logger.LogWarning($"{nameof(UploadPictureAsync)} - {message} - {typeof(PictureService)}");
             return Result.Fail(new BadRequestError(message));
         }
 
         Picture picture = new Picture
         {
-            PictureId = Guid.NewGuid(),
+            Id = Guid.NewGuid(),
             AppUserId = user.Id,
             ImageUrl = uploadResult.SecureUrl.AbsoluteUri,
             PublicId = uploadResult.PublicId,
@@ -67,46 +69,44 @@ public class PictureService : IPictureService
         };
 
         var spec = new AllPicturesByUserIdSpecification(id);
-        if (!(await _pictureRepository.GetAllWithSpecAsync(spec, true)).Any())
+        if (!(await _unitOfWork.Pictures.GetAllWithSpecAsync(spec, true)).Any())
         {
             picture.IsMain = true;
         }
 
         user.UpdatedAt = _dateTimeProvider.LocalVietnamDateTimeNow;
 
-        await _pictureRepository.AddAsync(picture);
+        _unitOfWork.Pictures.Add(picture);
+        await _unitOfWork.SaveChangesAsync();
 
         return _mapper.Map<PictureDto>(picture);
     }
 
-    public async Task<Result> SetMainPictureAsync(string id, Guid pictureId)
+    public async Task<Result> SetMainPictureAsync(Guid id, Guid pictureId)
     {
-        AppUser? user = await _userManager.FindByIdAsync(id);
+        AppUser? user = await _userManager.FindByIdAsync(id.ToString());
         if (user == null)
         {
-            string message = "User not found.";
-            Log.Warning($"{nameof(SetMainPictureAsync)} - {message} - {typeof(PictureService)}");
-            return Result.Fail(new NotFoundError(message));
+            _logger.LogWarning($"{nameof(SetMainPictureAsync)} - {ErrorMessageConsts.UserNotFound} - {typeof(PictureService)}");
+            return Result.Fail(new NotFoundError(ErrorMessageConsts.UserNotFound));
         }
 
-        var pictureSpec = new PictureByUserIdAndPictureIdSpecification(id, pictureId);
-        Picture? picture = await _pictureRepository.GetWithSpecAsync(pictureSpec, asNoTracking: true);
+        Picture? picture = await _unitOfWork.Pictures
+            .GetWithSpecAsync(new PictureByUserIdAndPictureIdSpecification(id, pictureId));
         if (picture == null)
         {
-            string message = "Picture not found.";
-            Log.Warning($"{nameof(SetMainPictureAsync)} - {message} - {typeof(PictureService)}");
-            return Result.Fail(new NotFoundError(message));
+            _logger.LogWarning($"{nameof(SetMainPictureAsync)} - {ErrorMessageConsts.PictureNotFound} - {typeof(PictureService)}");
+            return Result.Fail(new NotFoundError(ErrorMessageConsts.PictureNotFound));
         }
 
         if (picture.IsMain)
         {
-            string message = "This picture is already your main picture.";
-            Log.Warning($"{nameof(SetMainPictureAsync)} - {message} - {typeof(PictureService)}");
-            return Result.Fail(new BadRequestError(message));
+            _logger.LogWarning($"{nameof(SetMainPictureAsync)} - {ErrorMessageConsts.AlreadyMainPicture} - {typeof(PictureService)}");
+            return Result.Fail(new BadRequestError(ErrorMessageConsts.AlreadyMainPicture));
         }
 
-        var spec = new MainPictureByUserIdSpecification(id);
-        Picture? currentMain = await _pictureRepository.GetWithSpecAsync(spec);
+        Picture? currentMain = await _unitOfWork.Pictures
+            .GetWithSpecAsync(new MainPictureByUserIdSpecification(id));
         if (currentMain != null)
         {
             currentMain.IsMain = false;
@@ -117,48 +117,46 @@ public class PictureService : IPictureService
 
         user.UpdatedAt = _dateTimeProvider.LocalVietnamDateTimeNow;
 
-        await _pictureRepository.UpdateAsync(picture);
+        await _unitOfWork.SaveChangesAsync();
 
         return Result.Ok();
     }
 
-    public async Task<Result> RemovePictureAsync(string id, Guid pictureId)
+    public async Task<Result> RemovePictureAsync(Guid userId, Guid pictureId)
     {
-        AppUser? user = await _userManager.FindByIdAsync(id);
+        AppUser? user = await _userManager.FindByIdAsync(userId.ToString());
         if (user == null)
         {
-            string message = "User not found.";
-            Log.Warning($"{nameof(SetMainPictureAsync)} - {message} - {typeof(PictureService)}");
-            return Result.Fail(new NotFoundError(message));
+            _logger.LogWarning($"{nameof(SetMainPictureAsync)} - {ErrorMessageConsts.UserNotFound} - {typeof(PictureService)}");
+            return Result.Fail(new NotFoundError(ErrorMessageConsts.UserNotFound));
         }
 
-        Picture? picture = await _pictureRepository.GetAsync(pictureId);
+        Picture? picture = await _unitOfWork.Pictures.GetWithSpecAsync(new PictureExistInUserSpecification(user.Id, pictureId));
         if (picture == null)
         {
-            string message = "Picture not found.";
-            Log.Warning($"{nameof(RemovePictureAsync)} - {message} - {typeof(PictureService)}");
-            return Result.Fail(new NotFoundError(message));
+            _logger.LogWarning($"{nameof(RemovePictureAsync)} - {ErrorMessageConsts.PictureNotFound} - {typeof(PictureService)}");
+            return Result.Fail(new NotFoundError(ErrorMessageConsts.PictureNotFound));
         }
 
-        var spec = new AllPicturesByUserIdSpecification(id);
-        if (picture.IsMain && (await _pictureRepository.GetAllWithSpecAsync(spec)).Any())
+        if (picture.IsMain)
         {
-            string message = "You can't delete your main picture.";
-            Log.Warning($"{nameof(RemovePictureAsync)} - {message} - {typeof(PictureService)}");
-            return Result.Fail(new BadRequestError(message));
+            _logger.LogWarning($"{nameof(RemovePictureAsync)} - {ErrorMessageConsts.NotAllowDeleteMainPicture} - {typeof(PictureService)}");
+            return Result.Fail(new BadRequestError(ErrorMessageConsts.NotAllowDeleteMainPicture));
         }
 
         DeletionResult deletionResult = await _fileStorageService.RemoveImageAsync(picture.PublicId);
         if (deletionResult.Error != null)
         {
             string message = deletionResult.Error.Message;
-            Log.Warning($"{nameof(RemovePictureAsync)} - {message} - {typeof(PictureService)}");
+            _logger.LogWarning($"{nameof(RemovePictureAsync)} - {message} - {typeof(PictureService)}");
             return Result.Fail(new BadRequestError(message));
         }
 
         user.UpdatedAt = _dateTimeProvider.LocalVietnamDateTimeNow;
 
-        await _pictureRepository.RemoveAsync(picture);
+        _unitOfWork.Pictures.Remove(picture);
+
+        await _unitOfWork.SaveChangesAsync();
 
         return Result.Ok();
     }

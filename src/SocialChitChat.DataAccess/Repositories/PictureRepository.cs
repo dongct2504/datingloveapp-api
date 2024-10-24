@@ -6,13 +6,12 @@ namespace SocialChitChat.DataAccess.Repositories;
 
 public class PictureRepository : Repository<Picture>, IPictureRepository
 {
-    public PictureRepository(DatingLoveAppDbContext dbContext) : base(dbContext)
+    public PictureRepository(SocialChitChatDbContext dbContext) : base(dbContext)
     {
     }
 
-    public async Task UpdateAsync(Picture picture)
+    public void Update(Picture picture)
     {
         _dbContext.Update(picture);
-        await _dbContext.SaveChangesAsync();
     }
 }

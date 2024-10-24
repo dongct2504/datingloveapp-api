@@ -6,13 +6,12 @@ namespace SocialChitChat.DataAccess.Repositories;
 
 public class MessageRepository : Repository<Message>, IMessageRepository
 {
-    public MessageRepository(DatingLoveAppDbContext dbContext) : base(dbContext)
+    public MessageRepository(SocialChitChatDbContext dbContext) : base(dbContext)
     {
     }
 
-    public async Task UpdateAsync(Message message)
+    public void Update(Message message)
     {
         _dbContext.Update(message);
-        await _dbContext.SaveChangesAsync();
     }
 }

@@ -1,14 +1,15 @@
-﻿using FluentResults;
+﻿using CloudinaryDotNet.Actions;
+using FluentResults;
 using Mapster;
 using MapsterMapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using SocialChitChat.Business.Common.Constants;
+using SocialChitChat.Business.Common.Enums;
 using SocialChitChat.Business.Common.Errors;
 using SocialChitChat.Business.Dtos;
 using SocialChitChat.Business.Dtos.AppUsers;
-using SocialChitChat.Business.Dtos.PictureDtos;
 using SocialChitChat.Business.Interfaces;
 using SocialChitChat.DataAccess.Data;
 using SocialChitChat.DataAccess.Entities.AutoGenEntities;
@@ -20,9 +21,9 @@ namespace SocialChitChat.Business.Services;
 
 public class UserService : IUserService
 {
-    private readonly DatingLoveAppDbContext _dbContext;
+    private readonly SocialChitChatDbContext _dbContext;
     private readonly UserManager<AppUser> _userManager;
-    private readonly IPictureRepository _pictureRepository;
+    private readonly IUnitOfWork _unitOfWork;
     private readonly IDateTimeProvider _dateTimeProvider;
     private readonly IFileStorageService _fileStorageService;
     private readonly IMapper _mapper;
@@ -31,27 +32,29 @@ public class UserService : IUserService
         IFileStorageService fileStorageService,
         IMapper mapper,
         UserManager<AppUser> userManager,
-        DatingLoveAppDbContext dbContext,
-        IPictureRepository pictureRepository,
-        IDateTimeProvider dateTimeProvider)
+        SocialChitChatDbContext dbContext,
+        IDateTimeProvider dateTimeProvider,
+        IUnitOfWork unitOfWork)
     {
         _fileStorageService = fileStorageService;
         _mapper = mapper;
         _userManager = userManager;
         _dbContext = dbContext;
-        _pictureRepository = pictureRepository;
         _dateTimeProvider = dateTimeProvider;
+        _unitOfWork = unitOfWork;
     }
 
-    public async Task<PagedList<AppUserDto>> GetAllAsync(string id, UserParams userParams)
+    public async Task<PagedList<AppUserDto>> GetAllAsync(Guid id, UserParams userParams)
     {
-        IQueryable<AppUser> query = _userManager.Users.AsQueryable();
+        IQueryable<AppUser> query = _userManager.Users
+            .Include(u => u.Pictures)
+            .AsQueryable();
 
         query = query.Where(u => u.Id != id);
 
-        if (userParams.Gender != GenderConstants.Unknown)
+        if (userParams.Gender != GenderEnums.Unknown)
         {
-            query = query.Where(u => u.Gender == userParams.Gender);
+            query = query.Where(u => u.Gender == (byte)userParams.Gender);
         }
 
         int minDob = DateTime.Today.AddYears(-userParams.MaxAge - 1).Year; // 30 => 1993
@@ -83,19 +86,6 @@ public class UserService : IUserService
             .ProjectToType<AppUserDto>()
             .ToListAsync();
 
-        string[] userIds = users
-            .Select(u => u.Id)
-            .ToArray();
-
-        var spec = new MainPicturesByUserIdsSpecification(userIds);
-        IEnumerable<Picture> mainPicturesForEachUser = await _pictureRepository.GetAllWithSpecAsync(spec, true);
-
-        foreach (AppUserDto user in users)
-        {
-            user.ProfilePictureUrl = mainPicturesForEachUser
-                .FirstOrDefault(p => p.AppUserId == user.Id)?.ImageUrl;
-        }
-
         PagedList<AppUserDto> pagedList = new PagedList<AppUserDto>
         {
             PageNumber = userParams.PageNumber,
@@ -107,7 +97,7 @@ public class UserService : IUserService
         return pagedList;
     }
 
-    public async Task<Result<AppUserDetailDto>> GetByIdAsync(string id)
+    public async Task<Result<AppUserDetailDto>> GetByIdAsync(Guid id)
     {
         AppUserDetailDto? userDetailDto = await _userManager.Users
             .Where(u => u.Id == id)
@@ -117,17 +107,9 @@ public class UserService : IUserService
 
         if (userDetailDto == null)
         {
-            string message = "User not found.";
-            Log.Warning($"{nameof(GetByIdAsync)} - {message} - {typeof(UserService)}");
-            return Result.Fail(new NotFoundError(message));
+            Log.Warning($"{nameof(GetByIdAsync)} - {ErrorMessageConsts.UserNotFound} - {typeof(UserService)}");
+            return Result.Fail(new NotFoundError(ErrorMessageConsts.UserNotFound));
         }
-
-        var mainSpec = new MainPictureByUserIdSpecification(id);
-        userDetailDto.ProfilePictureUrl = (await _pictureRepository.GetWithSpecAsync(mainSpec, true))?.ImageUrl;
-
-        var spec = new AllPicturesByUserIdSpecification(id);
-        userDetailDto.Pictures = _mapper.Map<List<PictureDto>>(
-            await _pictureRepository.GetAllWithSpecAsync(spec, true));
 
         return userDetailDto;
     }
@@ -142,22 +124,14 @@ public class UserService : IUserService
 
         if (userDetailDto == null)
         {
-            string message = "User not found.";
-            Log.Warning($"{nameof(GetByIdAsync)} - {message} - {typeof(UserService)}");
-            return Result.Fail(new NotFoundError(message));
+            Log.Warning($"{nameof(GetByIdAsync)} - {ErrorMessageConsts.UserNotFound} - {typeof(UserService)}");
+            return Result.Fail(new NotFoundError(ErrorMessageConsts.UserNotFound));
         }
-
-        var mainSpec = new MainPictureByUserIdSpecification(userDetailDto.Id);
-        userDetailDto.ProfilePictureUrl = (await _pictureRepository.GetWithSpecAsync(mainSpec, true))?.ImageUrl;
-
-        var spec = new AllPicturesByUserIdSpecification(userDetailDto.Id);
-        userDetailDto.Pictures = _mapper.Map<List<PictureDto>>(
-            await _pictureRepository.GetAllWithSpecAsync(spec, true));
 
         return userDetailDto;
     }
 
-    public async Task<Result<AppUserDto>> GetCurrentUserAsync(string id)
+    public async Task<Result<AppUserDto>> GetCurrentUserAsync(Guid id)
     {
         AppUserDto? userDto = await _userManager.Users
             .Where(u => u.Id == id)
@@ -167,69 +141,44 @@ public class UserService : IUserService
 
         if (userDto == null)
         {
-            string message = "User not found.";
-            Log.Warning($"{nameof(GetCurrentUserAsync)} - {message} - {typeof(UserService)}");
-            return Result.Fail(new NotFoundError(message));
+            Log.Warning($"{nameof(GetCurrentUserAsync)} - {ErrorMessageConsts.UserNotFound} - {typeof(UserService)}");
+            return Result.Fail(new NotFoundError(ErrorMessageConsts.UserNotFound));
         }
-
-        var mainSpec = new MainPictureByUserIdSpecification(id);
-        userDto.ProfilePictureUrl = (await _pictureRepository.GetWithSpecAsync(mainSpec, true))?.ImageUrl;
 
         return userDto;
     }
 
-    public async Task<Result<List<AppUserDto>>> SearchAsync(string name, string id)
+    public async Task<Result<List<AppUserDto>>> SearchAsync(string name, Guid id)
     {
-        if (string.IsNullOrEmpty(name))
-        {
-            string message = "Search term cannot be empty.";
-            Log.Warning($"{nameof(SearchAsync)} - {message} - {typeof(UserService)}");
-            return Result.Fail(new BadRequestError(message));
-        }
-
         IQueryable<AppUser> query = _userManager.Users.AsQueryable();
 
         query = query.Where(u => u.Id != id);
 
-        query = query.Where(u => u.UserName.Contains(name));
+        if (!string.IsNullOrEmpty(name))
+        {
+            string toLowerName = name.ToLower();
+            query = query.Where(u => u.UserName.ToLower().Contains(toLowerName) ||
+                u.Nickname.ToLower().Contains(toLowerName));
+        }
 
-        List<AppUserDto> users = await query
+        List<AppUserDto> usersDto = await query
             .AsNoTracking()
             .ProjectToType<AppUserDto>()
             .ToListAsync();
 
-        string[] userIds = users
-            .Select(u => u.Id)
-            .ToArray();
-
-        var spec = new MainPicturesByUserIdsSpecification(userIds);
-        IEnumerable<Picture> mainPictureForEachUser = await _pictureRepository.GetAllWithSpecAsync(spec, true);
-
-        foreach (AppUserDto userDto in users)
-        {
-            userDto.ProfilePictureUrl = mainPictureForEachUser
-                .FirstOrDefault(p => p.AppUserId == userDto.Id)?.ImageUrl;
-        }
-
-        return users;
+        return usersDto;
     }
 
     public async Task<Result> UpdateAsync(UpdateAppUserDto updateUserDto)
     {
-        AppUser user = await _userManager.FindByIdAsync(updateUserDto.Id);
+        AppUser user = await _userManager.FindByIdAsync(updateUserDto.Id.ToString());
         if (user == null)
         {
-            string message = "User not found.";
-            Log.Warning($"{nameof(GetByIdAsync)} - {message} - {typeof(UserService)}");
-            return Result.Fail(new NotFoundError(message));
+            Log.Warning($"{nameof(GetByIdAsync)} - {ErrorMessageConsts.UserNotFound} - {typeof(UserService)}");
+            return Result.Fail(new NotFoundError(ErrorMessageConsts.UserNotFound));
         }
 
         _mapper.Map(updateUserDto, user);
-
-        if (!string.IsNullOrEmpty(updateUserDto.Role))
-        {
-            await _userManager.AddToRoleAsync(user, updateUserDto.Role);
-        }
 
         user.UpdatedAt = _dateTimeProvider.LocalVietnamDateTimeNow;
 
@@ -238,24 +187,46 @@ public class UserService : IUserService
         return Result.Ok();
     }
 
-    public async Task<Result> RemoveAsync(string id)
+    public async Task<Result> RemoveAsync(Guid id)
     {
-        AppUser? user = await _userManager.FindByIdAsync(id);
+        AppUser? user = await _userManager.FindByIdAsync(id.ToString());
         if (user == null)
         {
-            string message = "User not found.";
-            Log.Warning($"{nameof(RemoveAsync)} - {message} - {typeof(PictureService)}");
-            return Result.Fail(new NotFoundError(message));
+            Log.Warning($"{nameof(RemoveAsync)} - {ErrorMessageConsts.UserNotFound} - {typeof(PictureService)}");
+            return Result.Fail(new NotFoundError(ErrorMessageConsts.UserNotFound));
         }
 
-        var spec = new AllPicturesByUserIdSpecification(id);
-        IEnumerable<Picture> pictures = await _pictureRepository.GetAllWithSpecAsync(spec, true);
+        using (var transaction = await _dbContext.Database.BeginTransactionAsync())
+        {
+            try
+            {
+                IdentityResult deleteUserResult = await _userManager.DeleteAsync(user);
+                if (!deleteUserResult.Succeeded)
+                {
+                    throw new Exception("User deletion failed.");
+                }
 
-        IEnumerable<Task> tasks = pictures
-            .Select(p => _fileStorageService.RemoveImageAsync(p.PublicId));
-        await Task.WhenAll(tasks);
+                var spec = new AllPicturesByUserIdSpecification(id);
+                IEnumerable<Picture> pictures = await _unitOfWork.Pictures.GetAllWithSpecAsync(spec, true);
 
-        await _userManager.DeleteAsync(user);
+                Task<DeletionResult>[] deletionTasks = pictures
+                    .Select(p => _fileStorageService.RemoveImageAsync(p.PublicId))
+                    .ToArray();
+                DeletionResult[] deletionResults = await Task.WhenAll(deletionTasks);
+
+                if (deletionResults.Any(result => result.Error != null))
+                {
+                    throw new Exception("One or more image deletions failed.");
+                }
+
+                await transaction.CommitAsync();
+            }
+            catch (Exception)
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        };
 
         return Result.Ok();
     }

@@ -14,9 +14,9 @@ namespace SocialChitChat.Api.Controllers;
 [Route("api/v{v:apiVersion}/test-errors")]
 public class TestErrorsController : ApiController
 {
-    private readonly DatingLoveAppDbContext _dbContext;
+    private readonly SocialChitChatDbContext _dbContext;
 
-    public TestErrorsController(DatingLoveAppDbContext dbContext)
+    public TestErrorsController(SocialChitChatDbContext dbContext)
     {
         _dbContext = dbContext;
     }

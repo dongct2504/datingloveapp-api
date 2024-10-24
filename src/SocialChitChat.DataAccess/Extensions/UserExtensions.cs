@@ -1,11 +1,17 @@
-﻿using System.Security.Claims;
+﻿using SocialChitChat.DataAccess.Identity;
+using System.Security.Claims;
 
 namespace SocialChitChat.DataAccess.Extensions;
 
 public static class UserExtensions
 {
-    public static string GetCurrentUserId(this ClaimsPrincipal user)
+    public static Guid GetCurrentUserId(this ClaimsPrincipal user)
     {
-        return user.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+        return Guid.Parse(user.FindFirstValue(ClaimTypes.NameIdentifier));
+    }
+
+    public static string? GetMainProfilePictureUrl(this AppUser user)
+    {
+        return user.Pictures.FirstOrDefault(u => u.IsMain)?.ImageUrl;
     }
 }

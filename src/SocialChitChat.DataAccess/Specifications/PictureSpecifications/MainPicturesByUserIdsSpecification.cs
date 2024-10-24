@@ -5,7 +5,7 @@ namespace SocialChitChat.DataAccess.Specifications.PictureSpecifications;
 
 public class MainPicturesByUserIdsSpecification : Specification<Picture>
 {
-    public MainPicturesByUserIdsSpecification(string[] userIds)
+    public MainPicturesByUserIdsSpecification(Guid[] userIds)
         : base(p => userIds.Contains(p.AppUserId) && p.IsMain)
     {
     }

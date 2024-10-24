@@ -2,7 +2,8 @@
 using MapsterMapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Serilog;
+using Microsoft.Extensions.Logging;
+using SocialChitChat.Business.Common.Constants;
 using SocialChitChat.Business.Common.Errors;
 using SocialChitChat.Business.Dtos.AppUsers;
 using SocialChitChat.Business.Dtos.AuthenticationDtos;
@@ -10,7 +11,6 @@ using SocialChitChat.Business.Interfaces;
 using SocialChitChat.DataAccess.Common;
 using SocialChitChat.DataAccess.Identity;
 using SocialChitChat.DataAccess.Interfaces;
-using SocialChitChat.DataAccess.Specifications.PictureSpecifications;
 
 namespace SocialChitChat.Business.Services;
 
@@ -18,10 +18,10 @@ public class AuthenticationService : IAuthenticationService
 {
     private readonly UserManager<AppUser> _userManager;
     private readonly RoleManager<AppRole> _roleManager;
-    private readonly IPictureRepository _pictureRepository;
     private readonly SignInManager<AppUser> _signInManager;
     private readonly IJwtTokenGenerator _jwtTokenGenerator;
     private readonly IDateTimeProvider _dateTimeProvider;
+    private readonly ILogger<AuthenticationService> _logger;
     private readonly IMapper _mapper;
 
     public AuthenticationService(
@@ -30,16 +30,16 @@ public class AuthenticationService : IAuthenticationService
         UserManager<AppUser> userManager,
         RoleManager<AppRole> roleManager,
         SignInManager<AppUser> signInManager,
-        IPictureRepository pictureRepository,
-        IDateTimeProvider dateTimeProvider)
+        IDateTimeProvider dateTimeProvider,
+        ILogger<AuthenticationService> logger)
     {
         _mapper = mapper;
         _jwtTokenGenerator = jwtTokenGenerator;
         _userManager = userManager;
         _roleManager = roleManager;
         _signInManager = signInManager;
-        _pictureRepository = pictureRepository;
         _dateTimeProvider = dateTimeProvider;
+        _logger = logger;
     }
 
     public async Task<Result<AuthenticationDto>> RegisterAsync(RegisterAppUserDto userDto)
@@ -49,9 +49,8 @@ public class AuthenticationService : IAuthenticationService
             .FirstOrDefaultAsync();
         if (user != null)
         {
-            string message = "User is already exist.";
-            Log.Warning($"{nameof(RegisterAsync)} - {message} - {typeof(AuthenticationService)}");
-            return Result.Fail(new ConflictError(message));
+            _logger.LogWarning($"{nameof(RegisterAsync)} - {ErrorMessageConsts.UserDuplicate} - {typeof(AuthenticationService)}");
+            return Result.Fail(new ConflictError(ErrorMessageConsts.UserDuplicate));
         }
 
         user = _mapper.Map<AppUser>(userDto);
@@ -65,8 +64,8 @@ public class AuthenticationService : IAuthenticationService
             var errorMessages = result.Errors.Select(e => e.Description);
 
             string message = string.Join(" ", errorMessages);
-            Log.Warning($"{nameof(RegisterAsync)} - {message} - {typeof(AuthenticationService)}");
-            return Result.Fail(new BadRequestError(message));
+            _logger.LogWarning($"{nameof(RegisterAsync)} - {ErrorMessageConsts.WrongUserName} - {typeof(AuthenticationService)}");
+            return Result.Fail(new BadRequestError(ErrorMessageConsts.WrongUserName));
         }
 
         string[] roleNames = { RoleConstants.User, RoleConstants.Employee, RoleConstants.Admin };
@@ -78,7 +77,11 @@ public class AuthenticationService : IAuthenticationService
             }
         }
 
-        if (userDto.UserName == "admin")
+        if (userDto.UserName == "admin" ||
+            userDto.UserName == "admin1" ||
+            userDto.UserName == "admin2" ||
+            userDto.UserName == "admin3" ||
+            userDto.UserName == "admin4")
         {
             await _userManager.AddToRoleAsync(user, RoleConstants.Admin);
         }
@@ -113,9 +116,8 @@ public class AuthenticationService : IAuthenticationService
         AppUser user = await _userManager.FindByNameAsync(userDto.UserName);
         if (user == null)
         {
-            string message = "The user name is incorrect.";
-            Log.Warning($"{nameof(LoginAsync)} - {message} - {typeof(AuthenticationService)}");
-            return Result.Fail(new BadRequestError(message));
+            _logger.LogWarning($"{nameof(LoginAsync)} - {ErrorMessageConsts.WrongUserName} - {typeof(AuthenticationService)}");
+            return Result.Fail(new BadRequestError(ErrorMessageConsts.WrongUserName));
         }
 
         // check if the email is confirm here
@@ -123,16 +125,11 @@ public class AuthenticationService : IAuthenticationService
         SignInResult signInResult = await _signInManager.CheckPasswordSignInAsync(user, userDto.Password, false);
         if (!signInResult.Succeeded)
         {
-            string message = "The password is incorrect.";
-            Log.Warning($"{nameof(LoginAsync)} - {message} - {typeof(AuthenticationService)}");
-            return Result.Fail(new BadRequestError(message));
+            _logger.LogWarning($"{nameof(LoginAsync)} - {ErrorMessageConsts.WrongPassword} - {typeof(AuthenticationService)}");
+            return Result.Fail(new BadRequestError(ErrorMessageConsts.WrongPassword));
         }
 
         AppUserDto appUserDto = _mapper.Map<AppUserDto>(user);
-
-        var mainSpec = new MainPictureByUserIdSpecification(appUserDto.Id);
-        appUserDto.ProfilePictureUrl = (await _pictureRepository.GetWithSpecAsync(mainSpec, true))?.ImageUrl;
-
         string token = await _jwtTokenGenerator.GenerateTokenAsync(user);
 
         AuthenticationDto authenticationDto = new AuthenticationDto
@@ -141,7 +138,7 @@ public class AuthenticationService : IAuthenticationService
             Token = token
         };
 
-        Log.Information($"User login at: {_dateTimeProvider.LocalVietnamDateTimeNow:dd/MM/yyyy hh:mm tt}.");
+        _logger.LogInformation($"User login at: {_dateTimeProvider.LocalVietnamDateTimeNow:dd/MM/yyyy hh:mm tt}.");
 
         return authenticationDto;
     }

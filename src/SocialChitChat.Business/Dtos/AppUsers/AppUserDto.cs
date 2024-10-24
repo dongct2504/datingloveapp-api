@@ -2,7 +2,7 @@
 
 public class AppUserDto
 {
-    public string Id { get; set; } = null!;
+    public Guid Id { get; set; }
 
     public string UserName { get; set; } = null!;
 

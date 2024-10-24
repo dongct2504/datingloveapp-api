@@ -27,9 +27,9 @@ public class LogUserActivity : IAsyncActionFilter
             return;
         }
 
-        string userId = resultContext.HttpContext.User.GetCurrentUserId();
+        Guid userId = resultContext.HttpContext.User.GetCurrentUserId();
 
-        AppUser? user = await _userManager.FindByIdAsync(userId);
+        AppUser? user = await _userManager.FindByIdAsync(userId.ToString());
 
         if (user != null)
         {

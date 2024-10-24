@@ -12,7 +12,7 @@ public class PresenceTrackerService : IPresenceTrackerService
         _cacheService = cacheService;
     }
 
-    public async Task<bool> UserConnectedAsync(string id, string connectedId)
+    public async Task<bool> UserConnectedAsync(Guid id, string connectedId)
     {
         bool isOnline = false;
 
@@ -34,11 +34,11 @@ public class PresenceTrackerService : IPresenceTrackerService
         return isOnline;
     }
 
-    public async Task<bool> UserDisconnectedAsync(string id, string connectedId)
+    public async Task<bool> UserDisconnectedAsync(Guid userId, string connectedId)
     {
         bool isOffline = false;
 
-        string key = $"{CacheConstants.Presence}-{id}";
+        string key = $"{CacheConstants.Presence}-{userId}";
         List<string>? connectedIds = await _cacheService.GetAsync<List<string>>(key);
 
         if (connectedIds == null)
@@ -68,10 +68,45 @@ public class PresenceTrackerService : IPresenceTrackerService
         return await _cacheService.GetKeysExcepPrefixAsync(CacheConstants.Presence);
     }
 
-    public async Task<List<string>?> GetConnectionIdsForUser(string id)
+    public async Task<List<string>?> GetConnectionIdsForUser(Guid userId)
     {
-        string key = $"{CacheConstants.Presence}-{id}";
+        string key = $"{CacheConstants.Presence}-{userId}";
         List<string>? connectedIds = await _cacheService.GetAsync<List<string>>(key);
         return connectedIds;
+    }
+
+    // grouping for message thread
+    public async Task AddUserToGroupAsync(string groupName, Guid userId)
+    {
+        string groupKey = $"group-{groupName}";
+        List<Guid> groupMembers = await _cacheService.GetAsync<List<Guid>>(groupKey) ?? new List<Guid>();
+        groupMembers.Add(userId);
+
+        await _cacheService.SetAsync(groupKey, groupMembers, CacheOptions.PresenceExpiration);
+    }
+
+    public async Task<List<Guid>> GetGroupMembersAsync(string groupName)
+    {
+        string groupKey = $"group-{groupName}";
+        return await _cacheService.GetAsync<List<Guid>>(groupKey) ?? new List<Guid>();
+    }
+
+    public async Task RemoveUserFromGroupAsync(string groupName, Guid userId)
+    {
+        string groupKey = $"group-{groupName}";
+        List<Guid>? groupMembers = await _cacheService.GetAsync<List<Guid>>(groupKey);
+        if (groupMembers != null)
+        {
+            groupMembers.Remove(userId);
+
+            if (!groupMembers.Any())
+            {
+                await _cacheService.RemoveAsync(groupKey);
+            }
+            else
+            {
+                await _cacheService.SetAsync(groupKey, groupMembers, CacheOptions.PresenceExpiration);
+            }
+        }
     }
 }
