@@ -2,25 +2,25 @@
 
 FROM mcr.microsoft.com/dotnet/aspnet:6.0 AS base
 WORKDIR /app
-EXPOSE 5000
-EXPOSE 5001
+EXPOSE 80
+EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["src/DatingLoveApp.Api/DatingLoveApp.Api.csproj", "src/DatingLoveApp.Api/"]
-COPY ["src/DatingLoveApp.Business/DatingLoveApp.Business.csproj", "src/DatingLoveApp.Business/"]
-COPY ["src/DatingLoveApp.DataAccess/DatingLoveApp.DataAccess.csproj", "src/DatingLoveApp.DataAccess/"]
-RUN dotnet restore "./src/DatingLoveApp.Api/DatingLoveApp.Api.csproj"
+COPY ["src/SocialChitChat.Api/SocialChitChat.Api.csproj", "src/SocialChitChat.Api/"]
+COPY ["src/SocialChitChat.Business/SocialChitChat.Business.csproj", "src/SocialChitChat.Business/"]
+COPY ["src/SocialChitChat.DataAccess/SocialChitChat.DataAccess.csproj", "src/SocialChitChat.DataAccess/"]
+RUN dotnet restore "./src/SocialChitChat.Api/SocialChitChat.Api.csproj"
 COPY . .
-WORKDIR "/src/src/DatingLoveApp.Api"
-RUN dotnet build "./DatingLoveApp.Api.csproj" -c $BUILD_CONFIGURATION -o /app/build
+WORKDIR "/src/src/SocialChitChat.Api"
+RUN dotnet build "./SocialChitChat.Api.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./DatingLoveApp.Api.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "./SocialChitChat.Api.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "DatingLoveApp.Api.dll"]
+ENTRYPOINT ["dotnet", "SocialChitChat.Api.dll"]

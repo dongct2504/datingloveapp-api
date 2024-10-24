@@ -4,7 +4,8 @@
       "commandName": "DockerCompose",
       "commandVersion": "1.0",
       "serviceActions": {
-        "datingloveapp.api": "StartDebugging"
+        "datingloveapp.api": "StartDebugging",
+        "socialchitchat.api": "StartDebugging"
       }
     }
   }

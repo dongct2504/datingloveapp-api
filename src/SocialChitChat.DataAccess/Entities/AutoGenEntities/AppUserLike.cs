@@ -1,25 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using SocialChitChat.DataAccess.Identity;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 
 namespace SocialChitChat.DataAccess.Entities.AutoGenEntities
 {
-    [Table("AppUserLike")]
     public partial class AppUserLike
     {
         [Key]
-        [StringLength(450)]
-        [Unicode(false)]
-        public string AppUserSourceId { get; set; } = null!;
+        public Guid AppUserSourceId { get; set; }
         [Key]
-        [StringLength(450)]
-        [Unicode(false)]
-        public string AppUserLikedId { get; set; } = null!;
+        public Guid AppUserLikedId { get; set; }
         [Column(TypeName = "datetime")]
-        public DateTime CreatedAt { get; set; }
+        public DateTime? CreatedAt { get; set; }
         [Column(TypeName = "datetime")]
-        public DateTime UpdatedAt { get; set; }
+        public DateTime? UpdatedAt { get; set; }
+
+        public virtual AppUser AppUserSource { get; set; } = null!;
+        public virtual AppUser AppUserLiked { get; set; } = null!;
     }
 }

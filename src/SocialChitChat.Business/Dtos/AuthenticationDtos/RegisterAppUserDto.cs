@@ -1,4 +1,6 @@
-﻿namespace SocialChitChat.Business.Dtos.AuthenticationDtos;
+﻿using SocialChitChat.Business.Common.Enums;
+
+namespace SocialChitChat.Business.Dtos.AuthenticationDtos;
 
 public class RegisterAppUserDto
 {
@@ -12,7 +14,7 @@ public class RegisterAppUserDto
 
     public DateTime DateOfBirth { get; set; }
 
-    public string Gender { get; set; } = null!;
+    public GenderEnums Gender { get; set; }
 
     public string Password { get; set; } = null!;
 

@@ -19,7 +19,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SocialChitChat.Business.Tes
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SocialChitChat.DataAccess.Tests", "test\SocialChitChat.DataAccess.Tests\SocialChitChat.DataAccess.Tests.csproj", "{493730CD-9C95-40BD-B725-3CA42521E544}"
 EndProject
-Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{A335CC36-5C23-4335-81CF-70D2290967F1}"
+Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{61E65678-A948-4E7D-B065-BA3103485D25}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -51,10 +51,10 @@ Global
 		{493730CD-9C95-40BD-B725-3CA42521E544}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{493730CD-9C95-40BD-B725-3CA42521E544}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{493730CD-9C95-40BD-B725-3CA42521E544}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A335CC36-5C23-4335-81CF-70D2290967F1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A335CC36-5C23-4335-81CF-70D2290967F1}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A335CC36-5C23-4335-81CF-70D2290967F1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A335CC36-5C23-4335-81CF-70D2290967F1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{61E65678-A948-4E7D-B065-BA3103485D25}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{61E65678-A948-4E7D-B065-BA3103485D25}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{61E65678-A948-4E7D-B065-BA3103485D25}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{61E65678-A948-4E7D-B065-BA3103485D25}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

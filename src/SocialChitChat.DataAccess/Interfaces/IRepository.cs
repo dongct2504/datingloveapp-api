@@ -13,9 +13,10 @@ public interface IRepository<T> where T : class
     Task<T?> GetAsync(string id);
     Task<T?> GetAsync(Guid id);
 
-    Task AddAsync(T entity);
-    Task RemoveAsync(T entity);
-    Task SaveAllAsync();
+    void Add(T entity);
+    void AddRange(List<T> entities);
+    void Remove(T entity);
+    void RemoveRange(List<T> entities);
 
     Task<IEnumerable<T>> GetAllWithSpecAsync(ISpecification<T> spec, bool asNoTracking = false);
     Task<T?> GetWithSpecAsync(ISpecification<T> spec, bool asNoTracking = false);

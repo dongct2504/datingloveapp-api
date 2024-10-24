@@ -25,7 +25,7 @@ public class PicturesController : ApiController
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UploadPicture(IFormFile imageFile)
     {
-        string id = User.GetCurrentUserId();
+        Guid id = User.GetCurrentUserId();
 
         Result<PictureDto> result = await _pictureService.UploadPictureAsync(id, imageFile);
         if (result.IsFailed)
@@ -42,7 +42,7 @@ public class PicturesController : ApiController
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> SetMainPicture(Guid pictureId)
     {
-        string id = User.GetCurrentUserId();
+        Guid id = User.GetCurrentUserId();
 
         Result result = await _pictureService.SetMainPictureAsync(id, pictureId);
         if (result.IsFailed)
@@ -58,7 +58,7 @@ public class PicturesController : ApiController
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> RemovePicture(Guid pictureId)
     {
-        string id = User.GetCurrentUserId();
+        Guid id = User.GetCurrentUserId();
 
         Result result = await _pictureService.RemovePictureAsync(id, pictureId);
         if (result.IsFailed)

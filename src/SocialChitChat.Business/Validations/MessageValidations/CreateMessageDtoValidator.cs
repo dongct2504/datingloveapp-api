@@ -3,7 +3,7 @@ using SocialChitChat.Business.Dtos.MessageDtos;
 
 namespace SocialChitChat.Business.Validations.MessageValidations;
 
-public class CreateMessageDtoValidator : AbstractValidator<CreateMessageDto>
+public class CreateMessageDtoValidator : AbstractValidator<SendMessageDto>
 {
     public CreateMessageDtoValidator()
     {

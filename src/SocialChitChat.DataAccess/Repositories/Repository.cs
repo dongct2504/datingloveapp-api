@@ -7,11 +7,11 @@ namespace SocialChitChat.DataAccess.Repositories;
 
 public class Repository<T> : IRepository<T> where T : class
 {
-    protected readonly DatingLoveAppDbContext _dbContext;
+    protected readonly SocialChitChatDbContext _dbContext;
 
     private readonly DbSet<T> _dbSet;
 
-    public Repository(DatingLoveAppDbContext dbContext)
+    public Repository(SocialChitChatDbContext dbContext)
     {
         _dbContext = dbContext;
         _dbSet = dbContext.Set<T>();
@@ -52,21 +52,24 @@ public class Repository<T> : IRepository<T> where T : class
         return await _dbSet.FindAsync(id);
     }
 
-    public async Task AddAsync(T entity)
+    public void Add(T entity)
     {
-        await _dbSet.AddAsync(entity);
-        await _dbContext.SaveChangesAsync();
+        _dbSet.Add(entity);
     }
 
-    public async Task RemoveAsync(T entity)
+    public void AddRange(List<T> entities)
+    {
+        _dbSet.AddRange(entities);
+    }
+
+    public void Remove(T entity)
     {
         _dbSet.Remove(entity);
-        await _dbContext.SaveChangesAsync();
     }
 
-    public async Task SaveAllAsync()
+    public void RemoveRange(List<T> entities)
     {
-        await _dbContext.SaveChangesAsync();
+        _dbSet.RemoveRange(entities);
     }
 
     // specs

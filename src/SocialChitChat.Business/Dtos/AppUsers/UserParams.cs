@@ -1,10 +1,11 @@
 ﻿using SocialChitChat.Business.Common.Constants;
+using SocialChitChat.Business.Common.Enums;
 
 namespace SocialChitChat.Business.Dtos.AppUsers;
 
 public class UserParams
 {
-    public string Gender { get; set; } = GenderConstants.Unknown;
+    public GenderEnums Gender { get; set; } = GenderEnums.Unknown;
 
     public int MinAge { get; set; } = 16;
 
