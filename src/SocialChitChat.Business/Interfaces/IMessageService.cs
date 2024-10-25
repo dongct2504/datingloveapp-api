@@ -6,7 +6,7 @@ namespace SocialChitChat.Business.Interfaces;
 
 public interface IMessageService
 {
-    Task<PagedList<MessageDto>> GetMessagesForUserAsync(MessageParams messageParams);
+    Task<Result<PagedList<MessageDto>>> GetMessagesForUserAsync(MessageParams messageParams);
     Task<Result<PagedList<MessageDto>>> GetMessagesBetweenParticipantsAsync(GetMessageBetweenParticipantsParams participantsParams);
 
     Task<Result<MessageDto>> SendMessageToRecipientAsync(SendMessageDto createMessageDto);
