@@ -149,14 +149,14 @@ public class AppUserLikeService : IAppUserLikeService
         if (sourceUser == null)
         {
             _logger.LogWarning($"{nameof(UpdateLikeAsync)} - {ErrorMessageConsts.SourceUserNotFound} - {typeof(AppUserLikeService)}");
-            return Result.Fail(new NotFoundError(ErrorMessageConsts.SourceUserNotFound));
+            return Result.Fail(new BadRequestError(ErrorMessageConsts.SourceUserNotFound));
         }
 
         AppUser? likedUser = await _userManager.FindByIdAsync(userLikedId.ToString());
         if (likedUser == null)
         {
             _logger.LogWarning($"{nameof(UpdateLikeAsync)} - {ErrorMessageConsts.LikedUserNotFound} - {typeof(AppUserLikeService)}");
-            return Result.Fail(new NotFoundError(ErrorMessageConsts.LikedUserNotFound));
+            return Result.Fail(new BadRequestError(ErrorMessageConsts.LikedUserNotFound));
         }
 
         if (sourceUser.Id == likedUser.Id)

@@ -96,7 +96,7 @@ public class MessagesController : ApiController
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> DeleteMessage(Guid id)
     {
-        Result deleteMessageResult = await _messageService.DeleteMessageAsync(User.GetCurrentUserId(), id);
+        Result deleteMessageResult = await _messageService.DeleteMessageAsync(id);
         if (deleteMessageResult.IsFailed)
         {
             return Problem(deleteMessageResult.Errors);
