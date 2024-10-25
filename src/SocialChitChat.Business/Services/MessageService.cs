@@ -1,4 +1,5 @@
 ﻿using FluentResults;
+using Mapster;
 using MapsterMapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.SignalR;
@@ -50,9 +51,41 @@ public class MessageService : IMessageService
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<PagedList<MessageDto>> GetMessagesForUserAsync(MessageParams messageParams)
+    public async Task<Result<PagedList<MessageDto>>> GetMessagesForUserAsync(MessageParams messageParams)
     {
-        throw new NotImplementedException();
+        AppUser? sender = await _userManager.Users
+            .AsNoTracking()
+            .FirstOrDefaultAsync(u => u.Id == messageParams.UserId);
+        if (sender == null)
+        {
+            Log.Warning($"{nameof(SendMessageToRecipientAsync)} - {ErrorMessageConsts.SenderNotFound} - {typeof(MessageService)}");
+            return Result.Fail(new NotFoundError(ErrorMessageConsts.SenderNotFound));
+        }
+
+        IQueryable<Message> messagesQuery = _dbContext.Messages.AsQueryable();
+
+        messagesQuery = messagesQuery
+            .Where(m => m.SenderId == sender.Id);
+
+        int totalItems = await messagesQuery.CountAsync();
+
+        List<MessageDto> messageDtos = await messagesQuery
+            .AsNoTracking()
+            .OrderByDescending(m => m.MessageSent) // get the latest messages first to paging
+            .Skip((messageParams.PageNumber - 1) * messageParams.PageSize)
+            .Take(messageParams.PageSize)
+            .ProjectToType<MessageDto>()
+            .ToListAsync();
+
+        PagedList<MessageDto> pagedList = new PagedList<MessageDto>
+        {
+            TotalRecords = totalItems,
+            Items = messageDtos,
+            PageNumber = messageParams.PageNumber,
+            PageSize = messageParams.PageSize
+        };
+
+        return pagedList;
     }
 
     public async Task<Result<PagedList<MessageDto>>> GetMessagesBetweenParticipantsAsync(GetMessageBetweenParticipantsParams participantsParams)
@@ -99,22 +132,10 @@ public class MessageService : IMessageService
         List<MessageDto> messageDtos = await _dbContext.Messages
             .AsNoTracking()
             .Where(m => m.ConversationId == conversation.Id)
-            .Include(m => m.AppUser)
-            .ThenInclude(u => u.Pictures)
             .OrderByDescending(m => m.MessageSent) // get the latest messages first to paging
             .Skip((participantsParams.PageNumber - 1) * participantsParams.PageSize)
             .Take(participantsParams.PageSize)
-            .Select(m => new MessageDto
-            {
-                Id = m.Id,
-                ConversationId = m.ConversationId,
-                SenderId = m.SenderId,
-                SenderNickName = m.AppUser.Nickname,
-                SenderImageUrl = m.AppUser.GetMainProfilePictureUrl(),
-                Content = m.Content,
-                MessageSent = m.MessageSent,
-                DateRead = m.DateRead
-            })
+            .ProjectToType<MessageDto>()
             .ToListAsync();
 
         PagedList<MessageDto> pagedList = new PagedList<MessageDto>
@@ -161,7 +182,7 @@ public class MessageService : IMessageService
                 c.Participants.Any(p => p.AppUserId == sender.Id) &&
                 c.Participants.Any(p => p.AppUserId == recipient.Id) &&
                 !c.IsGroupChat);
-        
+
         if (conversation == null)
         {
             conversation = new Conversation
@@ -231,10 +252,7 @@ public class MessageService : IMessageService
             ConversationId = conversation.Id,
             SenderId = sender.Id,
             SenderNickName = sender.Nickname,
-            SenderImageUrl = sender.Pictures
-                .Where(p => p.IsMain)
-                .Select(p => p.ImageUrl)
-                .FirstOrDefault(),
+            SenderImageUrl = sender.GetMainProfilePictureUrl(),
             Content = message.Content,
             MessageSent = message.MessageSent,
             DateRead = message.DateRead

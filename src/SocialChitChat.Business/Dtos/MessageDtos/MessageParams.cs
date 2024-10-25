@@ -1,12 +1,8 @@
-﻿using SocialChitChat.Business.Common.Constants;
-
-namespace SocialChitChat.Business.Dtos.MessageDtos;
+﻿namespace SocialChitChat.Business.Dtos.MessageDtos;
 
 public class MessageParams
 {
-    public Guid Id { get; set; }
-
-    public string Contain { get; set; } = MessageConstants.Inbox;
+    public Guid UserId { get; set; }
 
     public int PageNumber { get; set; } = 1;
 
@@ -14,6 +10,6 @@ public class MessageParams
 
     public override string? ToString()
     {
-        return $"{Id}-{Contain}-{PageNumber}-{PageSize}";
+        return $"{UserId}-{PageNumber}-{PageSize}";
     }
 }
