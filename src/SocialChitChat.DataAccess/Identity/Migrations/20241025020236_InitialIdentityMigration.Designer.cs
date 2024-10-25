@@ -12,7 +12,7 @@ using SocialChitChat.DataAccess.Data;
 namespace SocialChitChat.DataAccess.Identity.Migrations
 {
     [DbContext(typeof(SocialChitChatDbContext))]
-    [Migration("20241024193111_InitialIdentityMigration")]
+    [Migration("20241025020236_InitialIdentityMigration")]
     partial class InitialIdentityMigration
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -141,6 +141,10 @@ namespace SocialChitChat.DataAccess.Identity.Migrations
 
                     b.Property<DateTime?>("CreatedAt")
                         .HasColumnType("datetime");
+
+                    b.Property<string>("GroupName")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<bool>("IsGroupChat")
                         .HasColumnType("bit");
