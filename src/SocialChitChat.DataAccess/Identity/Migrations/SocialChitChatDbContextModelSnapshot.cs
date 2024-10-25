@@ -140,6 +140,10 @@ namespace SocialChitChat.DataAccess.Identity.Migrations
                     b.Property<DateTime?>("CreatedAt")
                         .HasColumnType("datetime");
 
+                    b.Property<string>("GroupName")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
                     b.Property<bool>("IsGroupChat")
                         .HasColumnType("bit");
 

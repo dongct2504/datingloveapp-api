@@ -34,18 +34,24 @@ public class MessagesController : ApiController
         return Ok(pagedList);
     }
 
-    [HttpGet("thread/{id:guid}")]
-    [ProducesResponseType(typeof(List<MessageDto>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetMessageThread(Guid id)
+    [HttpGet("conversation-between-participants")]
+    [ProducesResponseType(typeof(PagedList<MessageDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetMessagesBetweenParticipants(
+        [FromQuery] GetMessageBetweenParticipantsParams participantsParams)
     {
-        Guid userId = User.GetCurrentUserId();
-        List<MessageDto> messageDtos = await _messageService.GetMessageThreadAsync(userId, id);
-        return Ok(messageDtos);
+        participantsParams.CurrentUserId = User.GetCurrentUserId();
+        Result<PagedList<MessageDto>> result = await _messageService
+            .GetMessagesBetweenParticipantsAsync(participantsParams);
+        if (result.IsFailed)
+        {
+            return Problem(result.Errors);
+        }
+        return Ok(result.Value);
     }
 
     [HttpPost]
     [ProducesResponseType(typeof(MessageDto), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> SendMessageToRecipient(
         [FromBody] SendMessageDto sendMessageDto,

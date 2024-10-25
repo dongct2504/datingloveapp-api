@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using SocialChitChat.Business.Common;
+using SocialChitChat.Business.Dtos;
 using SocialChitChat.Business.Dtos.MessageDtos;
 using SocialChitChat.Business.Interfaces;
 using SocialChitChat.DataAccess.Extensions;
@@ -34,8 +35,19 @@ public class MessageHub : Hub
             await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
             await _presenceTrackerService.AddUserToGroupAsync(groupName, currentUserId);
 
-            List<MessageDto> messages = await _messageService.GetMessageThreadAsync(currentUserId, otherUserId);
-            await Clients.Group(groupName).SendAsync("ReceiveMessageThread", messages);
+            Result<PagedList<MessageDto>> result = await _messageService
+                .GetMessagesBetweenParticipantsAsync(new GetMessageBetweenParticipantsParams
+                {
+                    CurrentUserId = currentUserId,
+                    RecipientId = otherUserId,
+                    PageNumber = 1,
+                    PageSize = 30
+                });
+            if (result.IsFailed)
+            {
+                throw new HubException(result.Errors.First().Message);
+            }
+            await Clients.Group(groupName).SendAsync("ReceiveMessageThread", result.Value);
         }
     }
 
