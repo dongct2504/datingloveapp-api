@@ -29,9 +29,13 @@ public class MessagesController : ApiController
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> GetMessageForUser([FromQuery] MessageParams messageParams)
     {
-        messageParams.Id = User.GetCurrentUserId();
-        PagedList<MessageDto> pagedList = await _messageService.GetMessagesForUserAsync(messageParams);
-        return Ok(pagedList);
+        messageParams.UserId = User.GetCurrentUserId();
+        Result<PagedList<MessageDto>> result = await _messageService.GetMessagesForUserAsync(messageParams);
+        if (result.IsFailed)
+        {
+            return Problem(result.Errors);
+        }
+        return Ok(result.Value);
     }
 
     [HttpGet("conversation-between-participants")]
