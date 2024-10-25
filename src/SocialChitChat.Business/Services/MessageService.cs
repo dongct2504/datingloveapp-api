@@ -4,7 +4,7 @@ using MapsterMapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
-using Serilog;
+using Microsoft.Extensions.Logging;
 using SocialChitChat.Business.Common;
 using SocialChitChat.Business.Common.Constants;
 using SocialChitChat.Business.Common.Errors;
@@ -29,6 +29,7 @@ public class MessageService : IMessageService
     private readonly ICacheService _cacheService;
     private readonly IDateTimeProvider _dateTimeProvider;
     private readonly IHubContext<PresenceHub> _presenceHubContext;
+    private readonly ILogger<MessageService> _logger;
     private readonly IMapper _mapper;
 
     public MessageService(
@@ -39,7 +40,8 @@ public class MessageService : IMessageService
         ICacheService cacheService,
         IPresenceTrackerService presenceTrackerService,
         IHubContext<PresenceHub> presenceHubContext,
-        IUnitOfWork unitOfWork)
+        IUnitOfWork unitOfWork,
+        ILogger<MessageService> logger)
     {
         _userManager = userManager;
         _dateTimeProvider = dateTimeProvider;
@@ -49,6 +51,7 @@ public class MessageService : IMessageService
         _presenceTrackerService = presenceTrackerService;
         _presenceHubContext = presenceHubContext;
         _unitOfWork = unitOfWork;
+        _logger = logger;
     }
 
     public async Task<Result<PagedList<MessageDto>>> GetMessagesForUserAsync(MessageParams messageParams)
@@ -58,7 +61,7 @@ public class MessageService : IMessageService
             .FirstOrDefaultAsync(u => u.Id == messageParams.UserId);
         if (sender == null)
         {
-            Log.Warning($"{nameof(SendMessageToRecipientAsync)} - {ErrorMessageConsts.SenderNotFound} - {typeof(MessageService)}");
+            _logger.LogWarning($"{nameof(SendMessageToRecipientAsync)} - {ErrorMessageConsts.SenderNotFound} - {typeof(MessageService)}");
             return Result.Fail(new NotFoundError(ErrorMessageConsts.SenderNotFound));
         }
 
@@ -96,7 +99,7 @@ public class MessageService : IMessageService
             .FirstOrDefaultAsync(u => u.Id == participantsParams.CurrentUserId);
         if (sender == null)
         {
-            Log.Warning($"{nameof(SendMessageToRecipientAsync)} - {ErrorMessageConsts.SenderNotFound} - {typeof(MessageService)}");
+            _logger.LogWarning($"{nameof(SendMessageToRecipientAsync)} - {ErrorMessageConsts.SenderNotFound} - {typeof(MessageService)}");
             return Result.Fail(new NotFoundError(ErrorMessageConsts.SenderNotFound));
         }
 
@@ -105,7 +108,7 @@ public class MessageService : IMessageService
             .FirstOrDefaultAsync(u => u.Id == participantsParams.RecipientId);
         if (recipient == null)
         {
-            Log.Warning($"{nameof(SendMessageToRecipientAsync)} - {ErrorMessageConsts.RecipientNotFound} - {typeof(MessageService)}");
+            _logger.LogWarning($"{nameof(SendMessageToRecipientAsync)} - {ErrorMessageConsts.RecipientNotFound} - {typeof(MessageService)}");
             return Result.Fail(new NotFoundError(ErrorMessageConsts.RecipientNotFound));
         }
 
@@ -157,7 +160,7 @@ public class MessageService : IMessageService
             .FirstOrDefaultAsync(u => u.Id == sendMessageDto.SenderId);
         if (sender == null)
         {
-            Log.Warning($"{nameof(SendMessageToRecipientAsync)} - {ErrorMessageConsts.SenderNotFound} - {typeof(MessageService)}");
+            _logger.LogWarning($"{nameof(SendMessageToRecipientAsync)} - {ErrorMessageConsts.SenderNotFound} - {typeof(MessageService)}");
             return Result.Fail(new BadRequestError(ErrorMessageConsts.SenderNotFound));
         }
 
@@ -166,13 +169,13 @@ public class MessageService : IMessageService
             .FirstOrDefaultAsync(u => u.Id == sendMessageDto.RecipientId);
         if (recipient == null)
         {
-            Log.Warning($"{nameof(SendMessageToRecipientAsync)} - {ErrorMessageConsts.RecipientNotFound} - {typeof(MessageService)}");
+            _logger.LogWarning($"{nameof(SendMessageToRecipientAsync)} - {ErrorMessageConsts.RecipientNotFound} - {typeof(MessageService)}");
             return Result.Fail(new BadRequestError(ErrorMessageConsts.RecipientNotFound));
         }
 
         if (sender.Id == recipient.Id)
         {
-            Log.Warning($"{nameof(SendMessageToRecipientAsync)} - {ErrorMessageConsts.ChatYourselfError} - {typeof(MessageService)}");
+            _logger.LogWarning($"{nameof(SendMessageToRecipientAsync)} - {ErrorMessageConsts.ChatYourselfError} - {typeof(MessageService)}");
             return Result.Fail(new BadRequestError(ErrorMessageConsts.ChatYourselfError));
         }
 
@@ -263,7 +266,20 @@ public class MessageService : IMessageService
 
     public async Task<Result<MessageDto>> ChangeToReadAsync(Guid id)
     {
-        throw new NotImplementedException();
+        Message? message = await _dbContext.Messages
+            .Include(m => m.AppUser)
+            .ThenInclude(u => u.Pictures)
+            .FirstOrDefaultAsync(m => m.Id == id);
+        if (message == null)
+        {
+            _logger.LogWarning($"{nameof(SendMessageToRecipientAsync)} - {ErrorMessageConsts.MessageNotFound} - {typeof(MessageService)}");
+            return Result.Fail(new BadRequestError(ErrorMessageConsts.MessageNotFound));
+        }
+
+        message.DateRead = _dateTimeProvider.LocalVietnamDateTimeNow;
+        await _unitOfWork.SaveChangesAsync();
+
+        return _mapper.Map<MessageDto>(message);
     }
 
     public async Task<Result> DeleteMessageAsync(Guid userId, Guid messageId)

@@ -18,6 +18,8 @@ public static class ErrorMessageConsts
     public const string AlreadyMainPicture = "Bức ảnh này đã là ảnh chính.";
     public const string NotAllowDeleteMainPicture = "Bạn không thể xóa ảnh chính của bạn.";
 
+    public const string MessageNotFound = "Không tìm thấy tin nhắn.";
+
     public const string WrongUserName = "Sai tên đăng nhập.";
     public const string WrongPassword = "Sai mật khẩu.";
 }
