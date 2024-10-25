@@ -272,7 +272,7 @@ public class MessageService : IMessageService
             .FirstOrDefaultAsync(m => m.Id == id);
         if (message == null)
         {
-            _logger.LogWarning($"{nameof(SendMessageToRecipientAsync)} - {ErrorMessageConsts.MessageNotFound} - {typeof(MessageService)}");
+            _logger.LogWarning($"{nameof(ChangeToReadAsync)} - {ErrorMessageConsts.MessageNotFound} - {typeof(MessageService)}");
             return Result.Fail(new BadRequestError(ErrorMessageConsts.MessageNotFound));
         }
 
@@ -282,8 +282,18 @@ public class MessageService : IMessageService
         return _mapper.Map<MessageDto>(message);
     }
 
-    public async Task<Result> DeleteMessageAsync(Guid userId, Guid messageId)
+    public async Task<Result> DeleteMessageAsync(Guid messageId)
     {
-        throw new NotImplementedException();
+        Message? message = await _unitOfWork.Messages.GetAsync(messageId);
+        if (message == null)
+        {
+            _logger.LogWarning($"{nameof(DeleteMessageAsync)} - {ErrorMessageConsts.MessageNotFound} - {typeof(MessageService)}");
+            return Result.Fail(new BadRequestError(ErrorMessageConsts.MessageNotFound));
+        }
+
+        _unitOfWork.Messages.Remove(message);
+        await _unitOfWork.SaveChangesAsync();
+
+        return Result.Ok();
     }
 }

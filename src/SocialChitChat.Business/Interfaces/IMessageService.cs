@@ -10,8 +10,7 @@ public interface IMessageService
     Task<Result<PagedList<MessageDto>>> GetMessagesBetweenParticipantsAsync(GetMessageBetweenParticipantsParams participantsParams);
 
     Task<Result<MessageDto>> SendMessageToRecipientAsync(SendMessageDto createMessageDto);
-
     Task<Result<MessageDto>> ChangeToReadAsync(Guid id);
 
-    Task<Result> DeleteMessageAsync(Guid userId, Guid messageId);
+    Task<Result> DeleteMessageAsync(Guid messageId);
 }

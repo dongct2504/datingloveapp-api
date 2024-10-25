@@ -21,6 +21,7 @@ public static class DependencyInjection
         services.AddScoped<IAppUserLikeService, AppUserLikeService>();
         services.AddScoped<IMessageService, MessageService>();
         services.AddScoped<IAdminService, AdminService>();
+        services.AddScoped<IConversationService, ConversationService>();
 
         services.AddScoped<LogUserActivity>();
 
