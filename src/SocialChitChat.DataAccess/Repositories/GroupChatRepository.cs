@@ -4,13 +4,13 @@ using SocialChitChat.DataAccess.Interfaces;
 
 namespace SocialChitChat.DataAccess.Repositories;
 
-public class ConversationRepository : Repository<Conversation>, IConversationRepository
+public class GroupChatRepository : Repository<GroupChat>, IGroupChatRepository
 {
-    public ConversationRepository(SocialChitChatDbContext dbContext) : base(dbContext)
+    public GroupChatRepository(SocialChitChatDbContext dbContext) : base(dbContext)
     {
     }
 
-    public void Update(Conversation conversation)
+    public void Update(GroupChat conversation)
     {
         _dbContext.Update(conversation);
     }

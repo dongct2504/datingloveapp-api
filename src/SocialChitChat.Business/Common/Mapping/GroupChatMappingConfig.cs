@@ -4,10 +4,10 @@ using SocialChitChat.DataAccess.Entities.AutoGenEntities;
 
 namespace SocialChitChat.Business.Common.Mapping;
 
-public class ConversationMappingConfig : IRegister
+public class GroupChatMappingConfig : IRegister
 {
     public void Register(TypeAdapterConfig config)
     {
-        config.NewConfig<Conversation, ConversationDto>();
+        config.NewConfig<GroupChat, GroupChatDto>();
     }
 }

@@ -3,6 +3,7 @@
 public static class ErrorMessageConsts
 {
     public const string UserNotFound = "Không tìm thấy người dùng.";
+    public const string AdminNotFound = "Không tìm thấy chủ nhóm.";
     public const string SenderNotFound = "Không tìm thấy người gửi.";
     public const string ChatYourselfError = "Bạn không thể tự chat bản thân mình được.";
     public const string RecipientNotFound = "Không tìm thấy người nhận.";

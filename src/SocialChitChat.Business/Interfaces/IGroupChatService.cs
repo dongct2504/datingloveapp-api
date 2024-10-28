@@ -3,11 +3,12 @@ using SocialChitChat.Business.Dtos.ConversationDtos;
 
 namespace SocialChitChat.Business.Interfaces;
 
-public interface IConversationService
+public interface IGroupChatService
 {
-    Task<IEnumerable<ConversationDto>> GetConversationsForUserAsync(Guid userId);
+    Task<IEnumerable<GroupChatDto>> GetChatListForUserAsync(Guid userId);
+    Task<Result<GroupChatDetailDto>> GetGroupchatAsync(GetGroupChatParams groupChatParams);
 
-    Task<Result<ConversationDto>> CreateGroupChatAsync(Guid ownerId, string groupName, IEnumerable<Guid> participantIds);
+    Task<Result<GroupChatDto>> CreateGroupChatAsync(CreateGroupChatDto request);
     Task<Result> AddUserToGroupAsync(Guid conversationId, Guid userId);
 
     Task<Result> RemoveUserFromGroupAsync(Guid conversationId, Guid userId);

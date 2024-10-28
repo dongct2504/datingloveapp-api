@@ -64,7 +64,7 @@ namespace SocialChitChat.DataAccess.Identity.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Conversations",
+                name: "GroupChats",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
@@ -75,7 +75,7 @@ namespace SocialChitChat.DataAccess.Identity.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Conversations", x => x.Id);
+                    table.PrimaryKey("PK_GroupChats", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -255,9 +255,9 @@ namespace SocialChitChat.DataAccess.Identity.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Messages_Conversations_ConversationId",
+                        name: "FK_Messages_GroupChats_ConversationId",
                         column: x => x.ConversationId,
-                        principalTable: "Conversations",
+                        principalTable: "GroupChats",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -281,9 +281,9 @@ namespace SocialChitChat.DataAccess.Identity.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Participants_Conversations_ConversationId",
+                        name: "FK_Participants_GroupChats_ConversationId",
                         column: x => x.ConversationId,
-                        principalTable: "Conversations",
+                        principalTable: "GroupChats",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -386,7 +386,7 @@ namespace SocialChitChat.DataAccess.Identity.Migrations
                 name: "AspNetRoles");
 
             migrationBuilder.DropTable(
-                name: "Conversations");
+                name: "GroupChats");
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");

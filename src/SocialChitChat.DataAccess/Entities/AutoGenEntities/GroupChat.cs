@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SocialChitChat.DataAccess.Entities.AutoGenEntities
 {
-    public partial class Conversation
+    public partial class GroupChat
     {
         public Guid Id { get; set; }
         public bool IsGroupChat { get; set; }

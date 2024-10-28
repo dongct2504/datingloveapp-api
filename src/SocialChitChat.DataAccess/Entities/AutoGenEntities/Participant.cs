@@ -14,7 +14,7 @@ namespace SocialChitChat.DataAccess.Entities.AutoGenEntities
         [Column(TypeName = "datetime")]
         public DateTime JoinAt { get; set; }
 
-        public virtual Conversation Conversation { get; set; } = null!;
+        public virtual GroupChat Conversation { get; set; } = null!;
         public virtual AppUser AppUser { get; set; } = null!;
     }
 }

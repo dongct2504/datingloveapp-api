@@ -2,7 +2,7 @@
 
 namespace SocialChitChat.DataAccess.Interfaces;
 
-public interface IConversationRepository : IRepository<Conversation>
+public interface IGroupChatRepository : IRepository<GroupChat>
 {
-    void Update(Conversation conversation);
+    void Update(GroupChat conversation);
 }

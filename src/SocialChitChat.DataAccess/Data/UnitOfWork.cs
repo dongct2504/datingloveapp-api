@@ -14,7 +14,7 @@ public class UnitOfWork : IUnitOfWork
         AppUserLikes = new AppUserLikeRepository(_dbContext);
         Pictures = new PictureRepository(_dbContext);
 
-        Conversations = new ConversationRepository(_dbContext);
+        GroupChats = new GroupChatRepository(_dbContext);
         Messages = new MessageRepository(_dbContext);
         Participants = new ParticipantRepository(_dbContext);
     }
@@ -23,7 +23,7 @@ public class UnitOfWork : IUnitOfWork
 
     public IPictureRepository Pictures { get; private set; }
 
-    public IConversationRepository Conversations { get; private set; }
+    public IGroupChatRepository GroupChats { get; private set; }
     public IMessageRepository Messages { get; private set; }
     public IParticipantRepository Participants { get; private set; }
 
