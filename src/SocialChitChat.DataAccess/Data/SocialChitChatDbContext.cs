@@ -19,7 +19,7 @@ namespace SocialChitChat.DataAccess.Data
 
         public virtual DbSet<Picture> Pictures { get; set; } = null!;
 
-        public virtual DbSet<Conversation> Conversations { get; set; } = null!;
+        public virtual DbSet<GroupChat> GroupChats { get; set; } = null!;
         public virtual DbSet<Message> Messages { get; set; } = null!;
         public virtual DbSet<Participant> Participants { get; set; } = null!;
 

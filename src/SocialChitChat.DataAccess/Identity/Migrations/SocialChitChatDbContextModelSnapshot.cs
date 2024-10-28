@@ -131,7 +131,7 @@ namespace SocialChitChat.DataAccess.Identity.Migrations
                     b.ToTable("AppUserLikes");
                 });
 
-            modelBuilder.Entity("SocialChitChat.DataAccess.Entities.AutoGenEntities.Conversation", b =>
+            modelBuilder.Entity("SocialChitChat.DataAccess.Entities.AutoGenEntities.GroupChat", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -152,7 +152,7 @@ namespace SocialChitChat.DataAccess.Identity.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Conversations");
+                    b.ToTable("GroupChats");
                 });
 
             modelBuilder.Entity("SocialChitChat.DataAccess.Entities.AutoGenEntities.Message", b =>
@@ -472,7 +472,7 @@ namespace SocialChitChat.DataAccess.Identity.Migrations
 
             modelBuilder.Entity("SocialChitChat.DataAccess.Entities.AutoGenEntities.Message", b =>
                 {
-                    b.HasOne("SocialChitChat.DataAccess.Entities.AutoGenEntities.Conversation", "Conversation")
+                    b.HasOne("SocialChitChat.DataAccess.Entities.AutoGenEntities.GroupChat", "Conversation")
                         .WithMany("Messages")
                         .HasForeignKey("ConversationId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -497,7 +497,7 @@ namespace SocialChitChat.DataAccess.Identity.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("SocialChitChat.DataAccess.Entities.AutoGenEntities.Conversation", "Conversation")
+                    b.HasOne("SocialChitChat.DataAccess.Entities.AutoGenEntities.GroupChat", "Conversation")
                         .WithMany("Participants")
                         .HasForeignKey("ConversationId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -536,7 +536,7 @@ namespace SocialChitChat.DataAccess.Identity.Migrations
                     b.Navigation("AppUser");
                 });
 
-            modelBuilder.Entity("SocialChitChat.DataAccess.Entities.AutoGenEntities.Conversation", b =>
+            modelBuilder.Entity("SocialChitChat.DataAccess.Entities.AutoGenEntities.GroupChat", b =>
                 {
                     b.Navigation("Messages");
 

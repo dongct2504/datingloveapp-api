@@ -99,7 +99,7 @@ public class MessageService : IMessageService
             .FirstOrDefaultAsync(u => u.Id == participantsParams.CurrentUserId);
         if (sender == null)
         {
-            _logger.LogWarning($"{nameof(SendMessageToRecipientAsync)} - {ErrorMessageConsts.SenderNotFound} - {typeof(MessageService)}");
+            _logger.LogWarning($"{nameof(GetMessagesBetweenParticipantsAsync)} - {ErrorMessageConsts.SenderNotFound} - {typeof(MessageService)}");
             return Result.Fail(new NotFoundError(ErrorMessageConsts.SenderNotFound));
         }
 
@@ -108,11 +108,11 @@ public class MessageService : IMessageService
             .FirstOrDefaultAsync(u => u.Id == participantsParams.RecipientId);
         if (recipient == null)
         {
-            _logger.LogWarning($"{nameof(SendMessageToRecipientAsync)} - {ErrorMessageConsts.RecipientNotFound} - {typeof(MessageService)}");
+            _logger.LogWarning($"{nameof(GetMessagesBetweenParticipantsAsync)} - {ErrorMessageConsts.RecipientNotFound} - {typeof(MessageService)}");
             return Result.Fail(new NotFoundError(ErrorMessageConsts.RecipientNotFound));
         }
 
-        Conversation? conversation = await _dbContext.Conversations
+        GroupChat? conversation = await _dbContext.GroupChats
             .Include(u => u.Participants)
             .FirstOrDefaultAsync(u =>
                 u.Participants.Any(p => p.AppUserId == sender.Id) &&
@@ -130,7 +130,9 @@ public class MessageService : IMessageService
             };
         }
 
-        int totalItems = await _dbContext.Messages.CountAsync();
+        int totalItems = await _dbContext.Messages
+            .Where(m => m.ConversationId == conversation.Id)
+            .CountAsync();
 
         List<MessageDto> messageDtos = await _dbContext.Messages
             .AsNoTracking()
@@ -179,7 +181,7 @@ public class MessageService : IMessageService
             return Result.Fail(new BadRequestError(ErrorMessageConsts.ChatYourselfError));
         }
 
-        Conversation? conversation = await _dbContext.Conversations
+        GroupChat? conversation = await _dbContext.GroupChats
             .Include(c => c.Participants)
             .FirstOrDefaultAsync(c =>
                 c.Participants.Any(p => p.AppUserId == sender.Id) &&
@@ -188,13 +190,13 @@ public class MessageService : IMessageService
 
         if (conversation == null)
         {
-            conversation = new Conversation
+            conversation = new GroupChat
             {
                 Id = Guid.NewGuid(),
                 IsGroupChat = false,
                 CreatedAt = _dateTimeProvider.LocalVietnamDateTimeNow
             };
-            _unitOfWork.Conversations.Add(conversation);
+            _unitOfWork.GroupChats.Add(conversation);
 
             List<Participant> participants = new List<Participant>
             {
