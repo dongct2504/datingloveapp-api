@@ -1,5 +1,5 @@
 ﻿using FluentResults;
-using SocialChitChat.Business.Dtos.ConversationDtos;
+using SocialChitChat.Business.Dtos.GroupChatDtos;
 
 namespace SocialChitChat.Business.Interfaces;
 
@@ -9,9 +9,10 @@ public interface IGroupChatService
     Task<Result<GroupChatDetailDto>> GetGroupchatAsync(GetGroupChatParams groupChatParams);
 
     Task<Result<GroupChatDto>> CreateGroupChatAsync(CreateGroupChatDto request);
-    Task<Result> AddUserToGroupAsync(Guid conversationId, Guid userId);
+    Task<Result> AddUserToGroupAsync(Guid groupChatId, Guid userId);
+    Task<Result> AddMultipleUsersToGroupAsync(Guid groupChatId, List<Guid> userId);
 
-    Task<Result> RemoveUserFromGroupAsync(Guid conversationId, Guid userId);
-    Task<Result> RemoveUsersFromGroupAsync(Guid conversationId, IEnumerable<Guid> userIds);
-    Task<Result> DeleteConversationForUserAsync(Guid userId, Guid conversationId);
+    Task<Result> RemoveUserFromGroupAsync(Guid groupChatId, Guid userId);
+    Task<Result> RemoveMutipleUsersFromGroupAsync(Guid groupChatId, List<Guid> userIds);
+    Task<Result> DeleteGroupChatForUserAsync(Guid groupChatId, Guid userId);
 }

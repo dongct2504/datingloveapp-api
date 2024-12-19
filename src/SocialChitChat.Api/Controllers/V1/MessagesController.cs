@@ -38,7 +38,7 @@ public class MessagesController : ApiController
         return Ok(result.Value);
     }
 
-    [HttpGet("conversation-between-participants")]
+    [HttpGet("get-messages-between-participants")]
     [ProducesResponseType(typeof(PagedList<MessageDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetMessagesBetweenParticipants(

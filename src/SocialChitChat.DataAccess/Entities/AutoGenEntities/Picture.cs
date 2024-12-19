@@ -9,6 +9,7 @@ namespace SocialChitChat.DataAccess.Entities.AutoGenEntities
         [Key]
         public Guid Id { get; set; }
         public Guid AppUserId { get; set; }
+        public Guid? PostId { get; set; }
         [StringLength(1024)]
         [Unicode(false)]
         public string ImageUrl { get; set; } = null!;

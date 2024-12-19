@@ -131,17 +131,19 @@ public class MessageService : IMessageService
         }
 
         int totalItems = await _dbContext.Messages
-            .Where(m => m.ConversationId == conversation.Id)
+            .Where(m => m.GroupChatId == conversation.Id)
             .CountAsync();
 
         List<MessageDto> messageDtos = await _dbContext.Messages
             .AsNoTracking()
-            .Where(m => m.ConversationId == conversation.Id)
+            .Where(m => m.GroupChatId == conversation.Id)
             .OrderByDescending(m => m.MessageSent) // get the latest messages first to paging
             .Skip((participantsParams.PageNumber - 1) * participantsParams.PageSize)
             .Take(participantsParams.PageSize)
             .ProjectToType<MessageDto>()
             .ToListAsync();
+
+        messageDtos.Reverse(); // get the latest message last for frontend
 
         PagedList<MessageDto> pagedList = new PagedList<MessageDto>
         {
@@ -202,13 +204,13 @@ public class MessageService : IMessageService
             {
                 new Participant
                 {
-                    ConversationId = conversation.Id,
+                    GroupChatId = conversation.Id,
                     AppUserId = sender.Id,
                     JoinAt = _dateTimeProvider.LocalVietnamDateTimeNow
                 },
                 new Participant
                 {
-                    ConversationId = conversation.Id,
+                    GroupChatId = conversation.Id,
                     AppUserId = recipient.Id,
                     JoinAt = _dateTimeProvider.LocalVietnamDateTimeNow
                 }
@@ -219,7 +221,7 @@ public class MessageService : IMessageService
         Message message = new Message
         {
             Id = Guid.NewGuid(),
-            ConversationId = conversation.Id,
+            GroupChatId = conversation.Id,
             SenderId = sender.Id,
             Content = sendMessageDto.Content,
             MessageSent = _dateTimeProvider.LocalVietnamDateTimeNow,

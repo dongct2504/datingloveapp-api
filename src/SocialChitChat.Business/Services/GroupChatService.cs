@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 using SocialChitChat.Business.Common.Constants;
 using SocialChitChat.Business.Common.Errors;
 using SocialChitChat.Business.Dtos;
-using SocialChitChat.Business.Dtos.ConversationDtos;
+using SocialChitChat.Business.Dtos.GroupChatDtos;
 using SocialChitChat.Business.Dtos.MessageDtos;
 using SocialChitChat.Business.Interfaces;
 using SocialChitChat.DataAccess.Data;
@@ -15,6 +15,7 @@ using SocialChitChat.DataAccess.Entities.AutoGenEntities;
 using SocialChitChat.DataAccess.Extensions;
 using SocialChitChat.DataAccess.Identity;
 using SocialChitChat.DataAccess.Interfaces;
+using SocialChitChat.DataAccess.Specifications.ParticipantSpecifications;
 
 namespace SocialChitChat.Business.Services;
 
@@ -80,17 +81,19 @@ public class GroupChatService : IGroupChatService
         }
 
         int totalItems = await _dbContext.Messages
-            .Where(m => m.ConversationId == groupChat.Id)
+            .Where(m => m.GroupChatId == groupChat.Id)
             .CountAsync();
 
         List<MessageDto> messageDtos = await _dbContext.Messages
             .AsNoTracking()
-            .Where(m => m.ConversationId == groupChat.Id)
+            .Where(m => m.GroupChatId == groupChat.Id)
             .OrderByDescending(m => m.MessageSent) // get the latest messages first to paging
             .Skip((groupChatParams.PageNumber - 1) * groupChatParams.PageSize)
             .Take(groupChatParams.PageSize)
             .ProjectToType<MessageDto>()
             .ToListAsync();
+
+        messageDtos.Reverse(); // get the latest message last for frontend
 
         PagedList<MessageDto> pagedList = new PagedList<MessageDto>
         {
@@ -132,7 +135,7 @@ public class GroupChatService : IGroupChatService
         {
             AppUserId = request.AdminId,
             IsAdmin = true,
-            ConversationId = newGroupChat.Id,
+            GroupChatId = newGroupChat.Id,
             JoinAt = _dateTimeProvider.LocalVietnamDateTimeNow
         });
 
@@ -158,7 +161,7 @@ public class GroupChatService : IGroupChatService
             {
                 AppUserId = participantId,
                 IsAdmin = false,
-                ConversationId = newGroupChat.Id,
+                GroupChatId = newGroupChat.Id,
                 JoinAt = _dateTimeProvider.LocalVietnamDateTimeNow
             });
         }
@@ -177,23 +180,140 @@ public class GroupChatService : IGroupChatService
         };
     }
 
-    public Task<Result> AddUserToGroupAsync(Guid conversationId, Guid userId)
+    public async Task<Result> AddUserToGroupAsync(Guid groupChatId, Guid userId)
     {
-        throw new NotImplementedException();
+        GroupChat? groupChat = await _unitOfWork.GroupChats.GetAsync(groupChatId);
+        if (groupChat == null)
+        {
+            _logger.LogWarning($"{nameof(AddUserToGroupAsync)} - {ErrorMessageConsts.GroupChatNotFound} - {typeof(MessageService)}");
+            return Result.Fail(new BadRequestError(ErrorMessageConsts.GroupChatNotFound));
+        }
+
+        if (!await _userManager.Users.AsNoTracking().AnyAsync(u => u.Id == userId))
+        {
+            _logger.LogWarning($"{nameof(AddUserToGroupAsync)} - {ErrorMessageConsts.UserNotFound} - {typeof(MessageService)}");
+            return Result.Fail(new BadRequestError(ErrorMessageConsts.UserNotFound));
+        }
+
+        groupChat.Participants.Add(new Participant
+        {
+            AppUserId = userId,
+            IsAdmin = true,
+            GroupChatId = groupChat.Id,
+            JoinAt = _dateTimeProvider.LocalVietnamDateTimeNow
+        });
+
+        _unitOfWork.GroupChats.Add(groupChat);
+        await _unitOfWork.SaveChangesAsync();
+
+        return Result.Ok();
     }
 
-    public Task<Result> RemoveUserFromGroupAsync(Guid conversationId, Guid userId)
+    public async Task<Result> AddMultipleUsersToGroupAsync(Guid groupChatId, List<Guid> userIds)
     {
-        throw new NotImplementedException();
+        GroupChat? groupChat = await _unitOfWork.GroupChats.GetAsync(groupChatId);
+        if (groupChat == null)
+        {
+            _logger.LogWarning($"{nameof(RemoveUserFromGroupAsync)} - {ErrorMessageConsts.GroupChatNotFound} - {typeof(MessageService)}");
+            return Result.Fail(new BadRequestError(ErrorMessageConsts.GroupChatNotFound));
+        }
+
+        List<Guid> validUserIds = await _userManager.Users
+            .Where(u => userIds.Contains(u.Id))
+            .Select(u => u.Id)
+            .ToListAsync();
+        if (!validUserIds.Any())
+        {
+            _logger.LogWarning($"{nameof(RemoveUserFromGroupAsync)} - {ErrorMessageConsts.GroupChatNotFound} - {typeof(MessageService)}");
+            return Result.Fail(new BadRequestError(ErrorMessageConsts.UserNotFound));
+        }
+
+        List<Participant> participants = new List<Participant>();
+        foreach (Guid userId in validUserIds)
+        {
+            participants.Add(new Participant
+            {
+                AppUserId = userId,
+                IsAdmin = false,
+                GroupChatId = groupChat.Id,
+                JoinAt = _dateTimeProvider.LocalVietnamDateTimeNow
+            });
+        }
+
+        _unitOfWork.Participants.AddRange(participants);
+        await _unitOfWork.SaveChangesAsync();
+
+        return Result.Ok();
     }
 
-    public Task<Result> RemoveUsersFromGroupAsync(Guid conversationId, IEnumerable<Guid> userIds)
+    public async Task<Result> RemoveUserFromGroupAsync(Guid groupChatId, Guid userId)
     {
-        throw new NotImplementedException();
+        GroupChat? groupChat = await _unitOfWork.GroupChats.GetAsync(groupChatId);
+        if (groupChat == null)
+        {
+            _logger.LogWarning($"{nameof(RemoveUserFromGroupAsync)} - {ErrorMessageConsts.GroupChatNotFound} - {typeof(MessageService)}");
+            return Result.Fail(new BadRequestError(ErrorMessageConsts.GroupChatNotFound));
+        }
+
+        Participant? participant = await _unitOfWork.Participants.GetAsync(groupChatId, userId);
+        if (participant == null)
+        {
+            _logger.LogWarning($"{nameof(RemoveUserFromGroupAsync)} - {ErrorMessageConsts.ParticipantChatNotFound} - {typeof(MessageService)}");
+            return Result.Fail(new BadRequestError(ErrorMessageConsts.ParticipantChatNotFound));
+        }
+
+        _unitOfWork.Participants.Remove(participant);
+        await _unitOfWork.SaveChangesAsync();
+
+        return Result.Ok();
     }
 
-    public Task<Result> DeleteConversationForUserAsync(Guid userId, Guid conversationId)
+    public async Task<Result> RemoveMutipleUsersFromGroupAsync(Guid groupChatId, List<Guid> userIds)
     {
-        throw new NotImplementedException();
+        GroupChat? groupChat = await _unitOfWork.GroupChats.GetAsync(groupChatId);
+        if (groupChat == null)
+        {
+            _logger.LogWarning($"{nameof(RemoveUserFromGroupAsync)} - {ErrorMessageConsts.GroupChatNotFound} - {typeof(MessageService)}");
+            return Result.Fail(new BadRequestError(ErrorMessageConsts.GroupChatNotFound));
+        }
+
+        IEnumerable<Participant> participants = await _unitOfWork.Participants
+            .GetAllWithSpecAsync(new ParticipantsByGroupChatIdAndUserIdsSpecification(groupChatId, userIds));
+        if (!participants.Any())
+        {
+            _logger.LogWarning($"{nameof(RemoveUserFromGroupAsync)} - {ErrorMessageConsts.ParticipantChatNotFound} - {typeof(MessageService)}");
+            return Result.Fail(new BadRequestError(ErrorMessageConsts.ParticipantChatNotFound));
+        }
+
+        _unitOfWork.Participants.RemoveRange(participants);
+
+        return Result.Ok();
+    }
+
+    public async Task<Result> DeleteGroupChatForUserAsync(Guid groupChatId, Guid userId)
+    {
+        GroupChat? groupChat = await _unitOfWork.GroupChats.GetAsync(groupChatId);
+        if (groupChat == null)
+        {
+            _logger.LogWarning($"{nameof(DeleteGroupChatForUserAsync)} - {ErrorMessageConsts.GroupChatNotFound} - {typeof(MessageService)}");
+            return Result.Fail(new BadRequestError(ErrorMessageConsts.GroupChatNotFound));
+        }
+
+        Participant? participant = await _unitOfWork.Participants.GetAsync(groupChatId, userId);
+        if (participant == null)
+        {
+            _logger.LogWarning($"{nameof(DeleteGroupChatForUserAsync)} - {ErrorMessageConsts.ParticipantChatNotFound} - {typeof(MessageService)}");
+            return Result.Fail(new BadRequestError(ErrorMessageConsts.ParticipantChatNotFound));
+        }
+
+        if (!participant.IsAdmin && groupChat.IsGroupChat)
+        {
+            _logger.LogWarning($"{nameof(DeleteGroupChatForUserAsync)} - {ErrorMessageConsts.GroupChatCannotRemove} - {typeof(MessageService)}");
+            return Result.Fail(new BadRequestError(ErrorMessageConsts.GroupChatCannotRemove));
+        }
+
+        _unitOfWork.GroupChats.Remove(groupChat);
+
+        return Result.Ok();
     }
 }

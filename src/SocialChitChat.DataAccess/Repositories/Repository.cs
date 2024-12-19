@@ -57,7 +57,7 @@ public class Repository<T> : IRepository<T> where T : class
         _dbSet.Add(entity);
     }
 
-    public void AddRange(List<T> entities)
+    public void AddRange(IEnumerable<T> entities)
     {
         _dbSet.AddRange(entities);
     }
@@ -67,7 +67,7 @@ public class Repository<T> : IRepository<T> where T : class
         _dbSet.Remove(entity);
     }
 
-    public void RemoveRange(List<T> entities)
+    public void RemoveRange(IEnumerable<T> entities)
     {
         _dbSet.RemoveRange(entities);
     }

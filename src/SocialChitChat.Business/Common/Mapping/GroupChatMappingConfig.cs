@@ -1,5 +1,5 @@
 ﻿using Mapster;
-using SocialChitChat.Business.Dtos.ConversationDtos;
+using SocialChitChat.Business.Dtos.GroupChatDtos;
 using SocialChitChat.DataAccess.Entities.AutoGenEntities;
 
 namespace SocialChitChat.Business.Common.Mapping;

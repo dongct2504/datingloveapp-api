@@ -11,21 +11,20 @@ public class UnitOfWork : IUnitOfWork
     {
         _dbContext = dbContext;
 
-        AppUserLikes = new AppUserLikeRepository(_dbContext);
+        Follows = new FollowRepository(_dbContext);
         Pictures = new PictureRepository(_dbContext);
-
         GroupChats = new GroupChatRepository(_dbContext);
         Messages = new MessageRepository(_dbContext);
         Participants = new ParticipantRepository(_dbContext);
+        Posts = new PostRepository(_dbContext);
     }
 
-    public IAppUserLikeRepository AppUserLikes { get; private set; }
-
+    public IFollowRepository Follows { get; private set; }
     public IPictureRepository Pictures { get; private set; }
-
     public IGroupChatRepository GroupChats { get; private set; }
     public IMessageRepository Messages { get; private set; }
     public IParticipantRepository Participants { get; private set; }
+    public IPostRepository Posts { get; private set; }
 
     public async Task SaveChangesAsync()
     {

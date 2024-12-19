@@ -23,13 +23,13 @@ public class UsersController : ApiController
         _userService = userService;
     }
 
-    [HttpGet]
+    [HttpGet("search")]
     [ProducesResponseType(typeof(PagedList<AppUserDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll([FromQuery] UserParams userParams)
     {
         Guid id = User.GetCurrentUserId();
 
-        return Ok(await _userService.GetAllAsync(id, userParams));
+        return Ok(await _userService.SearchAsync(id, userParams));
     }
 
     [HttpGet("{id:guid}", Name = "GetById")]
@@ -76,24 +76,9 @@ public class UsersController : ApiController
         return Ok(result.Value);
     }
 
-    [HttpGet("search")]
-    [ProducesResponseType(typeof(List<AppUserDto>), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> Search(string name)
-    {
-        Result<List<AppUserDto>> result = await _userService.SearchAsync(name, User.GetCurrentUserId());
-        if (result.IsFailed)
-        {
-            return Problem(result.Errors);
-        }
-
-        return Ok(result.Value);
-    }
-
     [HttpPut("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Update(
         Guid id,
         [FromBody] UpdateAppUserDto request,
@@ -121,7 +106,6 @@ public class UsersController : ApiController
 
     [HttpDelete("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Remove(Guid id)
     {
         Result result = await _userService.RemoveAsync(id);

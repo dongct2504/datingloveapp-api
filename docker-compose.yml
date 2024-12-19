@@ -21,11 +21,11 @@ services:
     volumes:
       - ./.containers/socialchitchat-db:/var/opt/mssql/data
     ports:
-      - 1433:1433
+      - 1533:1433
 
   socialchitchat.cache:
     image: redis:latest
     container_name: socialchitchat.cache
     restart: always
     ports:
-      - 6379:6379
+      - 6479:6379
