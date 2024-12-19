@@ -110,12 +110,48 @@ namespace SocialChitChat.DataAccess.Identity.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("SocialChitChat.DataAccess.Entities.AutoGenEntities.AppUserLike", b =>
+            modelBuilder.Entity("SocialChitChat.DataAccess.Entities.AutoGenEntities.Comment", b =>
                 {
-                    b.Property<Guid>("AppUserSourceId")
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("AppUserLikedId")
+                    b.Property<Guid>("AppUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime");
+
+                    b.Property<Guid>("PostId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("ReplyId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AppUserId");
+
+                    b.HasIndex("PostId");
+
+                    b.HasIndex("ReplyId");
+
+                    b.ToTable("Comment");
+                });
+
+            modelBuilder.Entity("SocialChitChat.DataAccess.Entities.AutoGenEntities.Follow", b =>
+                {
+                    b.Property<Guid>("FollowerId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("FollowingId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime?>("CreatedAt")
@@ -124,14 +160,14 @@ namespace SocialChitChat.DataAccess.Identity.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime");
 
-                    b.HasKey("AppUserSourceId", "AppUserLikedId");
+                    b.HasKey("FollowerId", "FollowingId");
 
-                    b.HasIndex("AppUserLikedId");
+                    b.HasIndex("FollowingId");
 
-                    b.ToTable("AppUserLikes");
+                    b.ToTable("Follows");
                 });
 
-            modelBuilder.Entity("SocialChitChat.DataAccess.Entities.AutoGenEntities.Conversation", b =>
+            modelBuilder.Entity("SocialChitChat.DataAccess.Entities.AutoGenEntities.GroupChat", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -152,7 +188,31 @@ namespace SocialChitChat.DataAccess.Identity.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Conversations");
+                    b.ToTable("GroupChats");
+                });
+
+            modelBuilder.Entity("SocialChitChat.DataAccess.Entities.AutoGenEntities.Like", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime");
+
+                    b.Property<Guid>("PostId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PostId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Likes");
                 });
 
             modelBuilder.Entity("SocialChitChat.DataAccess.Entities.AutoGenEntities.Message", b =>
@@ -165,11 +225,11 @@ namespace SocialChitChat.DataAccess.Identity.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid>("ConversationId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<DateTime?>("DateRead")
                         .HasColumnType("datetime");
+
+                    b.Property<Guid>("GroupChatId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("MessageSent")
                         .HasColumnType("datetime");
@@ -185,7 +245,7 @@ namespace SocialChitChat.DataAccess.Identity.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ConversationId");
+                    b.HasIndex("GroupChatId");
 
                     b.HasIndex("SenderId");
 
@@ -194,7 +254,7 @@ namespace SocialChitChat.DataAccess.Identity.Migrations
 
             modelBuilder.Entity("SocialChitChat.DataAccess.Entities.AutoGenEntities.Participant", b =>
                 {
-                    b.Property<Guid>("ConversationId")
+                    b.Property<Guid>("GroupChatId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("AppUserId")
@@ -206,7 +266,7 @@ namespace SocialChitChat.DataAccess.Identity.Migrations
                     b.Property<DateTime>("JoinAt")
                         .HasColumnType("datetime");
 
-                    b.HasKey("ConversationId", "AppUserId");
+                    b.HasKey("GroupChatId", "AppUserId");
 
                     b.HasIndex("AppUserId");
 
@@ -234,6 +294,9 @@ namespace SocialChitChat.DataAccess.Identity.Migrations
                     b.Property<bool>("IsMain")
                         .HasColumnType("bit");
 
+                    b.Property<Guid?>("PostId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("PublicId")
                         .IsRequired()
                         .HasMaxLength(256)
@@ -247,7 +310,35 @@ namespace SocialChitChat.DataAccess.Identity.Migrations
 
                     b.HasIndex("AppUserId");
 
+                    b.HasIndex("PostId");
+
                     b.ToTable("Pictures");
+                });
+
+            modelBuilder.Entity("SocialChitChat.DataAccess.Entities.AutoGenEntities.Post", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Posts");
                 });
 
             modelBuilder.Entity("SocialChitChat.DataAccess.Identity.AppRole", b =>
@@ -451,30 +542,74 @@ namespace SocialChitChat.DataAccess.Identity.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("SocialChitChat.DataAccess.Entities.AutoGenEntities.AppUserLike", b =>
+            modelBuilder.Entity("SocialChitChat.DataAccess.Entities.AutoGenEntities.Comment", b =>
                 {
-                    b.HasOne("SocialChitChat.DataAccess.Identity.AppUser", "AppUserLiked")
-                        .WithMany("LikedByUsers")
-                        .HasForeignKey("AppUserLikedId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.HasOne("SocialChitChat.DataAccess.Identity.AppUser", "AppUserSource")
-                        .WithMany("AppUserLikes")
-                        .HasForeignKey("AppUserSourceId")
+                    b.HasOne("SocialChitChat.DataAccess.Identity.AppUser", "User")
+                        .WithMany("Comments")
+                        .HasForeignKey("AppUserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("AppUserLiked");
+                    b.HasOne("SocialChitChat.DataAccess.Entities.AutoGenEntities.Post", "Post")
+                        .WithMany("Comments")
+                        .HasForeignKey("PostId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
 
-                    b.Navigation("AppUserSource");
+                    b.HasOne("SocialChitChat.DataAccess.Entities.AutoGenEntities.Comment", "Reply")
+                        .WithMany("Replies")
+                        .HasForeignKey("ReplyId");
+
+                    b.Navigation("Post");
+
+                    b.Navigation("Reply");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("SocialChitChat.DataAccess.Entities.AutoGenEntities.Follow", b =>
+                {
+                    b.HasOne("SocialChitChat.DataAccess.Identity.AppUser", "Follower")
+                        .WithMany("Followers")
+                        .HasForeignKey("FollowerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SocialChitChat.DataAccess.Identity.AppUser", "Following")
+                        .WithMany("Followings")
+                        .HasForeignKey("FollowingId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Follower");
+
+                    b.Navigation("Following");
+                });
+
+            modelBuilder.Entity("SocialChitChat.DataAccess.Entities.AutoGenEntities.Like", b =>
+                {
+                    b.HasOne("SocialChitChat.DataAccess.Entities.AutoGenEntities.Post", "Post")
+                        .WithMany("Likes")
+                        .HasForeignKey("PostId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("SocialChitChat.DataAccess.Identity.AppUser", "User")
+                        .WithMany("Likes")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Post");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("SocialChitChat.DataAccess.Entities.AutoGenEntities.Message", b =>
                 {
-                    b.HasOne("SocialChitChat.DataAccess.Entities.AutoGenEntities.Conversation", "Conversation")
+                    b.HasOne("SocialChitChat.DataAccess.Entities.AutoGenEntities.GroupChat", "Conversation")
                         .WithMany("Messages")
-                        .HasForeignKey("ConversationId")
+                        .HasForeignKey("GroupChatId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -497,15 +632,15 @@ namespace SocialChitChat.DataAccess.Identity.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("SocialChitChat.DataAccess.Entities.AutoGenEntities.Conversation", "Conversation")
+                    b.HasOne("SocialChitChat.DataAccess.Entities.AutoGenEntities.GroupChat", "GroupChat")
                         .WithMany("Participants")
-                        .HasForeignKey("ConversationId")
+                        .HasForeignKey("GroupChatId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("AppUser");
 
-                    b.Navigation("Conversation");
+                    b.Navigation("GroupChat");
                 });
 
             modelBuilder.Entity("SocialChitChat.DataAccess.Entities.AutoGenEntities.Picture", b =>
@@ -515,6 +650,21 @@ namespace SocialChitChat.DataAccess.Identity.Migrations
                         .HasForeignKey("AppUserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("SocialChitChat.DataAccess.Entities.AutoGenEntities.Post", null)
+                        .WithMany("Pictures")
+                        .HasForeignKey("PostId");
+                });
+
+            modelBuilder.Entity("SocialChitChat.DataAccess.Entities.AutoGenEntities.Post", b =>
+                {
+                    b.HasOne("SocialChitChat.DataAccess.Identity.AppUser", "User")
+                        .WithMany("Posts")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("SocialChitChat.DataAccess.Identity.AppUserRole", b =>
@@ -536,11 +686,25 @@ namespace SocialChitChat.DataAccess.Identity.Migrations
                     b.Navigation("AppUser");
                 });
 
-            modelBuilder.Entity("SocialChitChat.DataAccess.Entities.AutoGenEntities.Conversation", b =>
+            modelBuilder.Entity("SocialChitChat.DataAccess.Entities.AutoGenEntities.Comment", b =>
+                {
+                    b.Navigation("Replies");
+                });
+
+            modelBuilder.Entity("SocialChitChat.DataAccess.Entities.AutoGenEntities.GroupChat", b =>
                 {
                     b.Navigation("Messages");
 
                     b.Navigation("Participants");
+                });
+
+            modelBuilder.Entity("SocialChitChat.DataAccess.Entities.AutoGenEntities.Post", b =>
+                {
+                    b.Navigation("Comments");
+
+                    b.Navigation("Likes");
+
+                    b.Navigation("Pictures");
                 });
 
             modelBuilder.Entity("SocialChitChat.DataAccess.Identity.AppRole", b =>
@@ -550,17 +714,23 @@ namespace SocialChitChat.DataAccess.Identity.Migrations
 
             modelBuilder.Entity("SocialChitChat.DataAccess.Identity.AppUser", b =>
                 {
-                    b.Navigation("AppUserLikes");
-
                     b.Navigation("AppUserRoles");
 
-                    b.Navigation("LikedByUsers");
+                    b.Navigation("Comments");
+
+                    b.Navigation("Followers");
+
+                    b.Navigation("Followings");
+
+                    b.Navigation("Likes");
 
                     b.Navigation("Messages");
 
                     b.Navigation("Participants");
 
                     b.Navigation("Pictures");
+
+                    b.Navigation("Posts");
                 });
 #pragma warning restore 612, 618
         }

@@ -15,13 +15,13 @@ namespace SocialChitChat.DataAccess.Data
         {
         }
 
-        public virtual DbSet<AppUserLike> AppUserLikes { get; set; } = null!;
-
+        public virtual DbSet<Follow> Follows { get; set; } = null!;
         public virtual DbSet<Picture> Pictures { get; set; } = null!;
-
-        public virtual DbSet<Conversation> Conversations { get; set; } = null!;
+        public virtual DbSet<GroupChat> GroupChats { get; set; } = null!;
         public virtual DbSet<Message> Messages { get; set; } = null!;
         public virtual DbSet<Participant> Participants { get; set; } = null!;
+        public virtual DbSet<Like> Likes { get; set; } = null!;
+        public virtual DbSet<Post> Posts { get; set; } = null!;
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -31,22 +31,36 @@ namespace SocialChitChat.DataAccess.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.Entity<AppUserLike>()
-                .HasKey(ul => new { ul.AppUserSourceId, ul.AppUserLikedId });
+            modelBuilder.Entity<Follow>()
+                .HasKey(f => new { f.FollowerId, f.FollowingId });
             modelBuilder.Entity<Participant>()
-                .HasKey(ul => new { ul.ConversationId, ul.AppUserId });
+                .HasKey(p => new { p.GroupChatId, p.AppUserId });
 
-            // relationship between user and userlike
-            modelBuilder.Entity<AppUserLike>()
-                .HasOne(ul => ul.AppUserSource)
-                .WithMany(u => u.AppUserLikes)
-                .HasForeignKey(ul => ul.AppUserSourceId)
+            // relationship between user and follow
+            modelBuilder.Entity<Follow>()
+                .HasOne(f => f.Follower)
+                .WithMany(u => u.Followers)
+                .HasForeignKey(f => f.FollowerId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<AppUserLike>()
-                .HasOne(ul => ul.AppUserLiked)
-                .WithMany(u => u.LikedByUsers)
-                .HasForeignKey(ul => ul.AppUserLikedId)
+            modelBuilder.Entity<Follow>()
+                .HasOne(f => f.Following)
+                .WithMany(u => u.Followings)
+                .HasForeignKey(f => f.FollowingId)
+                .OnDelete(DeleteBehavior.NoAction); // manually clean up
+
+            // relationship between post and like
+            modelBuilder.Entity<Like>()
+                .HasOne(l => l.Post)
+                .WithMany(p => p.Likes)
+                .HasForeignKey(l => l.PostId)
+                .OnDelete(DeleteBehavior.NoAction); // manually clean up
+
+            // relationship between post and comment
+            modelBuilder.Entity<Comment>()
+                .HasOne(c => c.Post)
+                .WithMany(p => p.Comments)
+                .HasForeignKey(c => c.PostId)
                 .OnDelete(DeleteBehavior.NoAction); // manually clean up
 
             // config roles

@@ -7,6 +7,7 @@ using SocialChitChat.Business;
 using SocialChitChat.Business.SignalR;
 using SocialChitChat.DataAccess;
 using SocialChitChat.DataAccess.Data;
+using SocialChitChat.DataAccess.Initializers;
 
 var builder = WebApplication.CreateBuilder(args);
 {
@@ -28,26 +29,8 @@ var builder = WebApplication.CreateBuilder(args);
 
     builder.Host.UseSerilog();
 
-    // setting connection string and register DbContext
-    //var defaultConnectionStringBuilder = new SqlConnectionStringBuilder
-    //{
-    //    ConnectionString = builder.Configuration.GetConnectionString("SocialChitChatCS"),
-    //    UserID = builder.Configuration["UserID"],
-    //    Password = builder.Configuration["Password"]
-    //};
-
     builder.Services.AddDbContext<SocialChitChatDbContext>(options =>
         options.UseSqlServer(builder.Configuration.GetConnectionString("SocialChitChatCS")));
-
-    //var identityConnectionStringBuilder = new SqlConnectionStringBuilder
-    //{
-    //    ConnectionString = builder.Configuration.GetConnectionString("IdentityConnectionString"),
-    //    UserID = builder.Configuration["UserID"],
-    //    Password = builder.Configuration["Password"]
-    //};
-
-    //builder.Services.AddDbContext<DatingLoveAppIdentityDbContext>(options =>
-    //    options.UseSqlServer(identityConnectionStringBuilder.ConnectionString));
 
     // register dependencies in other players
     builder.Services
@@ -66,6 +49,8 @@ var builder = WebApplication.CreateBuilder(args);
         options.SubstituteApiVersionInUrl = true;
         options.AddApiVersionParametersWhenVersionNeutral = true;
     });
+
+    builder.Services.AddHostedService<DatabaseInitializer>();
 }
 
 var app = builder.Build();

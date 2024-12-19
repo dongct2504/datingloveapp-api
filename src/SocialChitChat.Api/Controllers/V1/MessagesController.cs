@@ -38,7 +38,7 @@ public class MessagesController : ApiController
         return Ok(result.Value);
     }
 
-    [HttpGet("conversation-between-participants")]
+    [HttpGet("get-messages-between-participants")]
     [ProducesResponseType(typeof(PagedList<MessageDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetMessagesBetweenParticipants(
@@ -96,7 +96,7 @@ public class MessagesController : ApiController
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> DeleteMessage(Guid id)
     {
-        Result deleteMessageResult = await _messageService.DeleteMessageAsync(User.GetCurrentUserId(), id);
+        Result deleteMessageResult = await _messageService.DeleteMessageAsync(id);
         if (deleteMessageResult.IsFailed)
         {
             return Problem(deleteMessageResult.Errors);

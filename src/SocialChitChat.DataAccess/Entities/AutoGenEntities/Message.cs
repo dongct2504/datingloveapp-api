@@ -8,7 +8,7 @@ namespace SocialChitChat.DataAccess.Entities.AutoGenEntities
     {
         [Key]
         public Guid Id { get; set; }
-        public Guid ConversationId { get; set; }
+        public Guid GroupChatId { get; set; }
         public Guid SenderId { get; set; }
         public string Content { get; set; } = null!;
         [Column(TypeName = "datetime")]
@@ -18,7 +18,7 @@ namespace SocialChitChat.DataAccess.Entities.AutoGenEntities
         public bool SenderDeleted { get; set; }
         public bool RecipientDeleted { get; set; }
 
-        public virtual Conversation Conversation { get; set; } = null!;
+        public virtual GroupChat Conversation { get; set; } = null!;
         [ForeignKey("SenderId")]
         public virtual AppUser AppUser { get; set; } = null!;
     }
