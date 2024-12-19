@@ -53,12 +53,14 @@ public class AppUser : IdentityUser<Guid>
 
     public ICollection<AppUserRole> AppUserRoles { get; set; } = new List<AppUserRole>();
 
-    public ICollection<AppUserLike> AppUserLikes { get; set; } = new List<AppUserLike>();
-    public ICollection<AppUserLike> LikedByUsers { get; set; } = new List<AppUserLike>();
+    public ICollection<Follow> Followers { get; set; } = new List<Follow>();
+    public ICollection<Follow> Followings { get; set; } = new List<Follow>();
 
     public ICollection<Picture> Pictures { get; set; } = new List<Picture>();
-
     public ICollection<Message> Messages { get; set; } = new List<Message>();
-
     public ICollection<Participant> Participants { get; set; } = new List<Participant>();
+
+    public ICollection<Post> Posts { get; set; } = new List<Post>();
+    public ICollection<Like> Likes { get; set; } = new List<Like>();
+    public ICollection<Comment> Comments { get; set; } = new List<Comment>();
 }

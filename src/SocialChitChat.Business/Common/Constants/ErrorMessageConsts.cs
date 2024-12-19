@@ -24,4 +24,12 @@ public static class ErrorMessageConsts
 
     public const string WrongUserName = "Sai tên đăng nhập.";
     public const string WrongPassword = "Sai mật khẩu.";
+
+    public const string GroupChatNotFound = "Không tìm thấy nhóm.";
+    public const string GroupChatCannotRemove = "Xóa nhóm không thành công.";
+
+    public const string ParticipantChatNotFound = "Không tìm thấy thành viên trong nhóm.";
+
+    public const string PostNotFound = "Không tìm thấy bài đăng.";
+    public const string TooManyPostPictures = "Vui lòng tải ít hơn hoặc bằng 10 hình ảnh cho 1 bài đăng.";
 }

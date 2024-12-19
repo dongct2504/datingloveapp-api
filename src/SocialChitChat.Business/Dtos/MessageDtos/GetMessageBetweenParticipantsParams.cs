@@ -1,12 +1,9 @@
 ﻿namespace SocialChitChat.Business.Dtos.MessageDtos;
 
-public class GetMessageBetweenParticipantsParams
+public class GetMessageBetweenParticipantsParams : DefaultParams
 {
     public Guid CurrentUserId { get; set; }
     public Guid RecipientId { get; set; }
-
-    public int PageNumber { get; set; }
-    public int PageSize { get; set; }
 
     public override string ToString()
     {

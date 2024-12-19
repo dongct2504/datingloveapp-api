@@ -1,6 +1,6 @@
 ﻿using SocialChitChat.Business.Common.Constants;
-using SocialChitChat.Business.Common.Enums;
 using SocialChitChat.DataAccess.Common;
+using SocialChitChat.DataAccess.Common.Enums;
 using System.Text.RegularExpressions;
 
 namespace SocialChitChat.Business.Validations;
@@ -44,10 +44,10 @@ public static class ValidateForRequest
         return age >= minAge && age <= maxAge;
     }
 
-    public static bool BeValidGender(GenderEnums gender)
+    public static bool BeValidGender(GenderEnum gender)
     {
-        return gender == GenderEnums.Male ||
-            gender == GenderEnums.Female ||
-            gender == GenderEnums.Unknown;
+        return gender == GenderEnum.Male ||
+            gender == GenderEnum.Female ||
+            gender == GenderEnum.Unknown;
     }
 }

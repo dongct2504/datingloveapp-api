@@ -8,7 +8,7 @@ namespace SocialChitChat.DataAccess.Entities.AutoGenEntities
     {
         [Key]
         public Guid Id { get; set; }
-        public Guid ConversationId { get; set; }
+        public Guid GroupChatId { get; set; }
         public Guid SenderId { get; set; }
         public string Content { get; set; } = null!;
         [Column(TypeName = "datetime")]

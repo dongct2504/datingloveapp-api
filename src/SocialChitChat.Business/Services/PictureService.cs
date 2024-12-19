@@ -8,6 +8,7 @@ using SocialChitChat.Business.Common.Constants;
 using SocialChitChat.Business.Common.Errors;
 using SocialChitChat.Business.Dtos.PictureDtos;
 using SocialChitChat.Business.Interfaces;
+using SocialChitChat.DataAccess.Data;
 using SocialChitChat.DataAccess.Entities.AutoGenEntities;
 using SocialChitChat.DataAccess.Identity;
 using SocialChitChat.DataAccess.Interfaces;
@@ -17,6 +18,7 @@ namespace SocialChitChat.Business.Services;
 
 public class PictureService : IPictureService
 {
+    private readonly SocialChitChatDbContext _dbContext;
     private readonly IUnitOfWork _unitOfWork;
     private readonly UserManager<AppUser> _userManager;
     private readonly IFileStorageService _fileStorageService;
@@ -30,7 +32,8 @@ public class PictureService : IPictureService
         IMapper mapper,
         IDateTimeProvider dateTimeProvider,
         IUnitOfWork unitOfWork,
-        ILogger<PictureService> logger)
+        ILogger<PictureService> logger,
+        SocialChitChatDbContext dbContext)
     {
         _userManager = userManager;
         _fileStorageService = fileStorageService;
@@ -38,6 +41,7 @@ public class PictureService : IPictureService
         _dateTimeProvider = dateTimeProvider;
         _unitOfWork = unitOfWork;
         _logger = logger;
+        _dbContext = dbContext;
     }
 
     public async Task<Result<PictureDto>> UploadPictureAsync(Guid id, IFormFile imageFile)
@@ -49,37 +53,51 @@ public class PictureService : IPictureService
             return Result.Fail(new NotFoundError(ErrorMessageConsts.UserNotFound));
         }
 
-        UploadResult uploadResult = await _fileStorageService.UploadImageAsync(imageFile,
-            UploadPath.UserImageUploadPath + user.UserName);
-        if (uploadResult.Error != null)
+        string uploadedImagePublicId = string.Empty;
+
+        try
         {
-            string message = uploadResult.Error.Message;
-            _logger.LogWarning($"{nameof(UploadPictureAsync)} - {message} - {typeof(PictureService)}");
-            return Result.Fail(new BadRequestError(message));
+            UploadResult uploadResult = await _fileStorageService.UploadImageAsync(imageFile,
+                UploadPath.UserImageUploadPath + user.UserName);
+            if (uploadResult.Error != null)
+            {
+                string message = uploadResult.Error.Message;
+                _logger.LogWarning($"{nameof(UploadPictureAsync)} - {message} - {typeof(PictureService)}");
+                throw new Exception(message);
+            }
+
+            uploadedImagePublicId = uploadResult.PublicId;
+
+            Picture picture = new Picture
+            {
+                Id = Guid.NewGuid(),
+                AppUserId = user.Id,
+                ImageUrl = uploadResult.SecureUrl.AbsoluteUri,
+                PublicId = uploadResult.PublicId,
+                CreatedAt = _dateTimeProvider.LocalVietnamDateTimeNow,
+                UpdatedAt = _dateTimeProvider.LocalVietnamDateTimeNow
+            };
+
+            var spec = new AllPicturesByUserIdSpecification(id);
+            if (!(await _unitOfWork.Pictures.GetAllWithSpecAsync(spec, true)).Any())
+            {
+                picture.IsMain = true;
+            }
+            user.UpdatedAt = _dateTimeProvider.LocalVietnamDateTimeNow;
+            _unitOfWork.Pictures.Add(picture);
+
+            await _unitOfWork.SaveChangesAsync();
+
+            return _mapper.Map<PictureDto>(picture);
         }
-
-        Picture picture = new Picture
+        catch (Exception)
         {
-            Id = Guid.NewGuid(),
-            AppUserId = user.Id,
-            ImageUrl = uploadResult.SecureUrl.AbsoluteUri,
-            PublicId = uploadResult.PublicId,
-            CreatedAt = _dateTimeProvider.LocalVietnamDateTimeNow,
-            UpdatedAt = _dateTimeProvider.LocalVietnamDateTimeNow
-        };
-
-        var spec = new AllPicturesByUserIdSpecification(id);
-        if (!(await _unitOfWork.Pictures.GetAllWithSpecAsync(spec, true)).Any())
-        {
-            picture.IsMain = true;
+            if (uploadedImagePublicId != string.Empty)
+            {
+                await _fileStorageService.RemoveImageAsync(uploadedImagePublicId);
+            }
+            throw;
         }
-
-        user.UpdatedAt = _dateTimeProvider.LocalVietnamDateTimeNow;
-
-        _unitOfWork.Pictures.Add(picture);
-        await _unitOfWork.SaveChangesAsync();
-
-        return _mapper.Map<PictureDto>(picture);
     }
 
     public async Task<Result> SetMainPictureAsync(Guid id, Guid pictureId)
@@ -144,20 +162,26 @@ public class PictureService : IPictureService
             return Result.Fail(new BadRequestError(ErrorMessageConsts.NotAllowDeleteMainPicture));
         }
 
-        DeletionResult deletionResult = await _fileStorageService.RemoveImageAsync(picture.PublicId);
-        if (deletionResult.Error != null)
+        try
         {
-            string message = deletionResult.Error.Message;
-            _logger.LogWarning($"{nameof(RemovePictureAsync)} - {message} - {typeof(PictureService)}");
-            return Result.Fail(new BadRequestError(message));
+            user.UpdatedAt = _dateTimeProvider.LocalVietnamDateTimeNow;
+            _unitOfWork.Pictures.Remove(picture);
+
+            DeletionResult deletionResult = await _fileStorageService.RemoveImageAsync(picture.PublicId);
+            if (deletionResult.Error != null)
+            {
+                string message = deletionResult.Error.Message;
+                _logger.LogWarning($"{nameof(RemovePictureAsync)} - {message} - {typeof(PictureService)}");
+                throw new Exception(message);
+            }
+
+            await _unitOfWork.SaveChangesAsync();
+
+            return Result.Ok();
         }
-
-        user.UpdatedAt = _dateTimeProvider.LocalVietnamDateTimeNow;
-
-        _unitOfWork.Pictures.Remove(picture);
-
-        await _unitOfWork.SaveChangesAsync();
-
-        return Result.Ok();
+        catch (Exception)
+        {
+            throw;
+        }
     }
 }

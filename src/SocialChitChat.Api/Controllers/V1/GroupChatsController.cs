@@ -4,7 +4,7 @@ using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using SocialChitChat.Business.Dtos.ConversationDtos;
+using SocialChitChat.Business.Dtos.GroupChatDtos;
 using SocialChitChat.Business.Interfaces;
 using SocialChitChat.DataAccess.Extensions;
 
@@ -15,18 +15,18 @@ namespace SocialChitChat.Api.Controllers.V1;
 [Route("api/v{v:apiVersion}/group-chats")]
 public class GroupChatsController : ApiController
 {
-    private readonly IGroupChatService _conversationService;
+    private readonly IGroupChatService _groupChatService;
 
-    public GroupChatsController(IGroupChatService conversationService)
+    public GroupChatsController(IGroupChatService groupChatService)
     {
-        _conversationService = conversationService;
+        _groupChatService = groupChatService;
     }
 
     [HttpGet]
     [ProducesResponseType(typeof(IEnumerable<GroupChatDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetChatListForUser()
     {
-        return Ok(await _conversationService.GetChatListForUserAsync(User.GetCurrentUserId()));
+        return Ok(await _groupChatService.GetChatListForUserAsync(User.GetCurrentUserId()));
     }
 
     [HttpGet("{id:guid}", Name = "GetGroupChat")]
@@ -40,7 +40,7 @@ public class GroupChatsController : ApiController
             PageNumber = pageNumber,
             PageSize = pageSize
         };
-        Result<GroupChatDetailDto> result = await _conversationService.GetGroupchatAsync(getGroupChatParams);
+        Result<GroupChatDetailDto> result = await _groupChatService.GetGroupchatAsync(getGroupChatParams);
         if (result.IsFailed)
         {
             return Problem(result.Errors);
@@ -62,7 +62,7 @@ public class GroupChatsController : ApiController
             return Problem(validationResult.Errors);
         }
 
-        Result<GroupChatDto> result = await _conversationService.CreateGroupChatAsync(request);
+        Result<GroupChatDto> result = await _groupChatService.CreateGroupChatAsync(request);
         if (result.IsFailed)
         {
             return Problem(result.Errors);
@@ -73,5 +73,57 @@ public class GroupChatsController : ApiController
             new { id = result.Value.Id },
             result.Value
         );
+    }
+
+    [HttpPost("add-user-to-group")]
+    [ProducesResponseType(typeof(GroupChatDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> AddUserToGroup(Guid groupChatId, Guid userId)
+    {
+        Result result = await _groupChatService.AddUserToGroupAsync(groupChatId, userId);
+        if (result.IsFailed)
+        {
+            return Problem(result.Errors);
+        }
+        return Ok();
+    }
+
+    [HttpPost("add-multiple-users-to-group")]
+    [ProducesResponseType(typeof(GroupChatDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> AddMultipleUsersToGroup(Guid groupChatId, List<Guid> userIds)
+    {
+        Result result = await _groupChatService.AddMultipleUsersToGroupAsync(groupChatId, userIds);
+        if (result.IsFailed)
+        {
+            return Problem(result.Errors);
+        }
+        return Ok();
+    }
+
+    [HttpPost("remove-user-to-group")]
+    [ProducesResponseType(typeof(GroupChatDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> RemoveUserFromGroup(Guid groupChatId, Guid userId)
+    {
+        Result result = await _groupChatService.RemoveUserFromGroupAsync(groupChatId, userId);
+        if (result.IsFailed)
+        {
+            return Problem(result.Errors);
+        }
+        return Ok();
+    }
+
+    [HttpPost("remove-multiple-users-to-group")]
+    [ProducesResponseType(typeof(GroupChatDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> RemoveMultipleUsersFromGroup(Guid groupChatId, List<Guid> userIds)
+    {
+        Result result = await _groupChatService.RemoveMutipleUsersFromGroupAsync(groupChatId, userIds);
+        if (result.IsFailed)
+        {
+            return Problem(result.Errors);
+        }
+        return Ok();
     }
 }
