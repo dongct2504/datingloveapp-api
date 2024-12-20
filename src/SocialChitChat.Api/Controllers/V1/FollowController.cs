@@ -11,7 +11,7 @@ namespace SocialChitChat.Api.Controllers.V1;
 
 [Authorize]
 [ApiVersion("1.0")]
-[Route("api/v{v:apiVersion}/likes")]
+[Route("api/v{v:apiVersion}/follow")]
 public class FollowController : ApiController
 {
     private readonly IFollowService _followService;
@@ -21,40 +21,50 @@ public class FollowController : ApiController
         _followService = followService;
     }
 
-    [HttpGet("get-follow")]
-    [ProducesResponseType(typeof(PagedList<FollowerDto>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetFollow([FromQuery] FollowParams followParams)
+    [HttpGet]
+    [ProducesResponseType(typeof(PagedList<FollowDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> GetAllFollows(string predicate)
+    {
+        Result<List<FollowDto>> result = await _followService.GetAllFollowsAsync(User.GetCurrentUserId(), predicate);
+        if (result.IsFailed)
+        {
+            return Problem(result.Errors);
+        }
+        return Ok(result.Value);
+    }
+
+    [HttpGet("get-follows")]
+    [ProducesResponseType(typeof(PagedList<FollowDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> GetFollows([FromQuery] FollowParams followParams)
     {
         followParams.UserId = User.GetCurrentUserId();
 
-        Result<PagedList<FollowerDto>> getUserLikesResult = await _followService
-            .GetFollowAsync(followParams);
-
-        if (getUserLikesResult.IsFailed)
+        Result<PagedList<FollowDto>> result = await _followService.GetFollowsAsync(followParams);
+        if (result.IsFailed)
         {
-            return Problem(getUserLikesResult.Errors);
+            return Problem(result.Errors);
         }
 
-        return Ok(getUserLikesResult.Value);
+        return Ok(result.Value);
     }
 
     [HttpGet("{id:guid}")]
     [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetUserLike(Guid id)
+    public async Task<IActionResult> IsUserFollow(Guid id)
     {
-        return Ok(await _followService.IsUserLikedAsync(User.GetCurrentUserId(), id));
+        return Ok(await _followService.IsUserFollowAsync(User.GetCurrentUserId(), id));
     }
 
     [HttpPost("{id:guid}")]
     [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> UpdateLike(Guid id)
+    public async Task<IActionResult> UpdateFollow(Guid id)
     {
         Guid sourceUserId = User.GetCurrentUserId();
 
-        Result<bool> result = await _followService.UpdateLikeAsync(sourceUserId, id);
+        Result<bool> result = await _followService.UpdateFollowAsync(sourceUserId, id);
         if (result.IsFailed)
         {
             return Problem(result.Errors);

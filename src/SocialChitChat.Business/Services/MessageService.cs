@@ -67,8 +67,33 @@ public class MessageService : IMessageService
 
         IQueryable<Message> messagesQuery = _dbContext.Messages.AsQueryable();
 
-        messagesQuery = messagesQuery
-            .Where(m => m.SenderId == sender.Id);
+        switch (messageParams.Contain.ToLower())
+        {
+            case MessageConstants.Inbox:
+                messagesQuery = messagesQuery.Where(m => m.Conversation.Participants.Any(
+                        p => p.AppUserId == messageParams.UserId)
+                    && m.SenderId != messageParams.UserId
+                    && !m.RecipientDeleted);
+                break;
+
+            case MessageConstants.Outbox:
+                messagesQuery = messagesQuery.Where(m => 
+                    m.SenderId == messageParams.UserId
+                    && !m.SenderDeleted);
+                break;
+
+            case MessageConstants.Unread:
+                messagesQuery = messagesQuery.Where(m => m.Conversation.Participants.Any(
+                        p => p.AppUserId == messageParams.UserId)
+                    && m.SenderId != messageParams.UserId
+                    && m.DateRead == null
+                    && !m.RecipientDeleted);
+                break;
+
+            default:
+                _logger.LogWarning($"{nameof(GetMessagesForUserAsync)} - Invalid 'Contain' value: {messageParams.Contain}");
+                return Result.Fail(new BadRequestError("Invalid filter type."));
+        }
 
         int totalItems = await messagesQuery.CountAsync();
 
@@ -100,7 +125,7 @@ public class MessageService : IMessageService
         if (sender == null)
         {
             _logger.LogWarning($"{nameof(GetMessagesBetweenParticipantsAsync)} - {ErrorMessageConsts.SenderNotFound} - {typeof(MessageService)}");
-            return Result.Fail(new NotFoundError(ErrorMessageConsts.SenderNotFound));
+            return Result.Fail(new BadRequestError(ErrorMessageConsts.SenderNotFound));
         }
 
         AppUser? recipient = await _userManager.Users
@@ -109,7 +134,7 @@ public class MessageService : IMessageService
         if (recipient == null)
         {
             _logger.LogWarning($"{nameof(GetMessagesBetweenParticipantsAsync)} - {ErrorMessageConsts.RecipientNotFound} - {typeof(MessageService)}");
-            return Result.Fail(new NotFoundError(ErrorMessageConsts.RecipientNotFound));
+            return Result.Fail(new BadRequestError(ErrorMessageConsts.RecipientNotFound));
         }
 
         GroupChat? conversation = await _dbContext.GroupChats

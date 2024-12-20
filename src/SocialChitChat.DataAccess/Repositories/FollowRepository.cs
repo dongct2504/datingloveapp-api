@@ -10,13 +10,13 @@ public class FollowRepository : Repository<Follow>, IFollowRepository
     {
     }
 
-    public async Task<Follow?> GetUserLike(Guid sorceUserId, Guid likedUserId)
+    public async Task<Follow?> GetUserFollow(Guid sorceUserId, Guid followedUserId)
     {
-        return await _dbContext.Follows.FindAsync(sorceUserId, likedUserId);
+        return await _dbContext.Follows.FindAsync(sorceUserId, followedUserId);
     }
 
-    public void Update(Follow appUserLike)
+    public void Update(Follow appUserFollow)
     {
-        _dbContext.Update(appUserLike);
+        _dbContext.Update(appUserFollow);
     }
 }

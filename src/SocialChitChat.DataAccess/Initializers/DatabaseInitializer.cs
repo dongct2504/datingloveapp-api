@@ -85,7 +85,7 @@ public class DatabaseInitializer : IHostedService
                 var result = await userManager.CreateAsync(user, "Employee@123");
                 if (result.Succeeded)
                 {
-                    await userManager.AddToRoleAsync(user, RoleConstants.User);
+                    await userManager.AddToRoleAsync(user, RoleConstants.Employee);
                 }
             }
         }

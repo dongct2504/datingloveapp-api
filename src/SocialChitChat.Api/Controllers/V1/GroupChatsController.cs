@@ -4,7 +4,9 @@ using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SocialChitChat.Business.Dtos;
 using SocialChitChat.Business.Dtos.GroupChatDtos;
+using SocialChitChat.Business.Dtos.MessageDtos;
 using SocialChitChat.Business.Interfaces;
 using SocialChitChat.DataAccess.Extensions;
 
@@ -30,7 +32,7 @@ public class GroupChatsController : ApiController
     }
 
     [HttpGet("{id:guid}", Name = "GetGroupChat")]
-    [ProducesResponseType(typeof(GroupChatDetailDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(PagedList<MessageDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetGroupChat(Guid id, int pageNumber = 1, int pageSize = 30)
     {
@@ -40,7 +42,7 @@ public class GroupChatsController : ApiController
             PageNumber = pageNumber,
             PageSize = pageSize
         };
-        Result<GroupChatDetailDto> result = await _groupChatService.GetGroupchatAsync(getGroupChatParams);
+        Result<PagedList<MessageDto>> result = await _groupChatService.GetGroupchatAsync(getGroupChatParams);
         if (result.IsFailed)
         {
             return Problem(result.Errors);
@@ -68,11 +70,7 @@ public class GroupChatsController : ApiController
             return Problem(result.Errors);
         }
 
-        return CreatedAtRoute(
-            nameof(GetGroupChat),
-            new { id = result.Value.Id },
-            result.Value
-        );
+        return Ok(result.Value);
     }
 
     [HttpPost("add-user-to-group")]

@@ -1,12 +1,14 @@
 ﻿using FluentResults;
+using SocialChitChat.Business.Dtos;
 using SocialChitChat.Business.Dtos.GroupChatDtos;
+using SocialChitChat.Business.Dtos.MessageDtos;
 
 namespace SocialChitChat.Business.Interfaces;
 
 public interface IGroupChatService
 {
     Task<IEnumerable<GroupChatDto>> GetChatListForUserAsync(Guid userId);
-    Task<Result<GroupChatDetailDto>> GetGroupchatAsync(GetGroupChatParams groupChatParams);
+    Task<Result<PagedList<MessageDto>>> GetGroupchatAsync(GetGroupChatParams groupChatParams);
 
     Task<Result<GroupChatDto>> CreateGroupChatAsync(CreateGroupChatDto request);
     Task<Result> AddUserToGroupAsync(Guid groupChatId, Guid userId);

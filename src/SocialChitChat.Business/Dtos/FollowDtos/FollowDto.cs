@@ -2,6 +2,10 @@
 
 public class FollowDto
 {
-    public string FollowerId { get; set; } = null!;
-    public string FollowingId { get; set; } = null!;
+    public Guid UserId { get; set; }
+    public string UserName { get; set; } = null!;
+    public string Nickname { get; set; } = null!;
+    public DateTime DateOfBirth { get; set; }
+    public string? ProfilePictureUrl { get; set; }
+    public string? City { get; set; }
 }

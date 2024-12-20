@@ -41,7 +41,45 @@ public class FollowService : IFollowService
         _logger = logger;
     }
 
-    public async Task<Result<PagedList<FollowerDto>>> GetFollowAsync(FollowParams followParams)
+    public async Task<Result<List<FollowDto>>> GetAllFollowsAsync(Guid userId, string predicate)
+    {
+        IQueryable<AppUser> usersQuery = _userManager.Users.AsQueryable();
+        IQueryable<Follow> followQuery = _dbContext.Follows.AsQueryable();
+
+        IEnumerable<Picture> mainPicturesForEachUser = Enumerable.Empty<Picture>();
+
+        if (predicate == "following") // get people that the user following
+        {
+            usersQuery = followQuery
+                .Where(f => f.FollowerId == userId)
+                .Select(f => f.Following);
+        }
+        else if (predicate == "follower") // get people that follow the user
+        {
+            usersQuery = followQuery
+                .Where(f => f.FollowingId == userId)
+                .Select(f => f.Follower);
+        }
+        else
+        {
+            _logger.LogWarning($"{nameof(GetFollowsAsync)} - {ErrorMessageConsts.InvalidPredicate} - {typeof(FollowService)}");
+            return Result.Fail(new BadRequestError(ErrorMessageConsts.InvalidPredicate));
+        }
+
+        return await usersQuery
+            .Select(u => new FollowDto
+            {
+                UserId = u.Id,
+                UserName = u.UserName,
+                Nickname = u.Nickname,
+                ProfilePictureUrl = u.GetMainProfilePictureUrl(),
+                DateOfBirth = u.DateOfBirth,
+                City = u.City
+            })
+            .ToListAsync();
+    }
+
+    public async Task<Result<PagedList<FollowDto>>> GetFollowsAsync(FollowParams followParams)
     {
         IQueryable<AppUser> usersQuery = _userManager.Users.AsQueryable();
         IQueryable<Follow> followQuery = _dbContext.Follows.AsQueryable();
@@ -52,24 +90,24 @@ public class FollowService : IFollowService
         {
             usersQuery = followQuery
                 .Where(f => f.FollowerId == followParams.UserId)
-                .Select(f => f.Follower);
+                .Select(f => f.Following);
         }
         else if (followParams.Predicate == "follower") // get people that follow the user
         {
             usersQuery = followQuery
                 .Where(f => f.FollowingId == followParams.UserId)
-                .Select(f => f.Following);
+                .Select(f => f.Follower);
         }
         else
         {
-            _logger.LogWarning($"{nameof(GetFollowAsync)} - {ErrorMessageConsts.InvalidPredicate} - {typeof(FollowService)}");
+            _logger.LogWarning($"{nameof(GetFollowsAsync)} - {ErrorMessageConsts.InvalidPredicate} - {typeof(FollowService)}");
             return Result.Fail(new BadRequestError(ErrorMessageConsts.InvalidPredicate));
         }
 
         int totalRecords = await usersQuery.CountAsync();
 
-        List<FollowerDto> likeDtos = await usersQuery
-            .Select(u => new FollowerDto
+        List<FollowDto> followDtos = await usersQuery
+            .Select(u => new FollowDto
             {
                 UserId = u.Id,
                 UserName = u.UserName,
@@ -82,53 +120,53 @@ public class FollowService : IFollowService
             .Take(followParams.PageSize)
             .ToListAsync();
 
-        PagedList<FollowerDto> pagedList = new PagedList<FollowerDto>
+        PagedList<FollowDto> pagedList = new PagedList<FollowDto>
         {
             PageNumber = followParams.PageNumber,
             PageSize = followParams.PageSize,
             TotalRecords = totalRecords,
-            Items = likeDtos
+            Items = followDtos
         };
 
         return pagedList;
     }
 
-    public async Task<bool> IsUserLikedAsync(Guid userSourceId, Guid userLikedId)
+    public async Task<bool> IsUserFollowAsync(Guid userSourceId, Guid userLikedId)
     {
-        Follow? userLike = await _unitOfWork.Follows.GetUserLike(userSourceId, userLikedId);
-        if (userLike == null)
+        Follow? follow = await _unitOfWork.Follows.GetUserFollow(userSourceId, userLikedId);
+        if (follow == null)
         {
             return false;
         }
         return true;
     }
 
-    public async Task<Result<bool>> UpdateLikeAsync(Guid userSourceId, Guid userLikedId)
+    public async Task<Result<bool>> UpdateFollowAsync(Guid userSourceId, Guid userLikedId)
     {
         AppUser? sourceUser = await _userManager.FindByIdAsync(userSourceId.ToString());
         if (sourceUser == null)
         {
-            _logger.LogWarning($"{nameof(UpdateLikeAsync)} - {ErrorMessageConsts.SourceUserNotFound} - {typeof(FollowService)}");
+            _logger.LogWarning($"{nameof(UpdateFollowAsync)} - {ErrorMessageConsts.SourceUserNotFound} - {typeof(FollowService)}");
             return Result.Fail(new BadRequestError(ErrorMessageConsts.SourceUserNotFound));
         }
 
         AppUser? likedUser = await _userManager.FindByIdAsync(userLikedId.ToString());
         if (likedUser == null)
         {
-            _logger.LogWarning($"{nameof(UpdateLikeAsync)} - {ErrorMessageConsts.LikedUserNotFound} - {typeof(FollowService)}");
+            _logger.LogWarning($"{nameof(UpdateFollowAsync)} - {ErrorMessageConsts.LikedUserNotFound} - {typeof(FollowService)}");
             return Result.Fail(new BadRequestError(ErrorMessageConsts.LikedUserNotFound));
         }
 
         if (sourceUser.Id == likedUser.Id)
         {
-            _logger.LogWarning($"{nameof(UpdateLikeAsync)} - {ErrorMessageConsts.LikeYourselfError} - {typeof(FollowService)}");
+            _logger.LogWarning($"{nameof(UpdateFollowAsync)} - {ErrorMessageConsts.LikeYourselfError} - {typeof(FollowService)}");
             return Result.Fail(new BadRequestError(ErrorMessageConsts.LikeYourselfError));
         }
 
-        Follow? userLike = await _unitOfWork.Follows.GetUserLike(userSourceId, userLikedId);
-        if (userLike != null)
+        Follow? follow = await _unitOfWork.Follows.GetUserFollow(userSourceId, userLikedId);
+        if (follow != null)
         {
-            _unitOfWork.Follows.Remove(userLike);
+            _unitOfWork.Follows.Remove(follow);
             await _unitOfWork.SaveChangesAsync();
             return false;
         }

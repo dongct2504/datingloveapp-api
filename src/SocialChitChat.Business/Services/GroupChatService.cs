@@ -66,7 +66,7 @@ public class GroupChatService : IGroupChatService
             });
     }
 
-    public async Task<Result<GroupChatDetailDto>> GetGroupchatAsync(GetGroupChatParams groupChatParams)
+    public async Task<Result<PagedList<MessageDto>>> GetGroupchatAsync(GetGroupChatParams groupChatParams)
     {
         GroupChat? groupChat = await _dbContext.GroupChats
             .AsNoTracking()
@@ -103,14 +103,7 @@ public class GroupChatService : IGroupChatService
             PageSize = groupChatParams.PageSize
         };
 
-        return new GroupChatDetailDto
-        {
-            Id = groupChat.Id,
-            GroupName = groupChat.GroupName ?? "Unnamed group chat",
-            IsGroupChat = groupChat.IsGroupChat,
-            ParticipantIds = groupChat.Participants.Select(p => p.AppUserId).ToList(),
-            PagedListMessageDto = pagedList
-        };
+        return pagedList;
     }
 
     public async Task<Result<GroupChatDto>> CreateGroupChatAsync(CreateGroupChatDto request)

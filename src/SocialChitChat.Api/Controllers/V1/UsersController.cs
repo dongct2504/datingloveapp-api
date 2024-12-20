@@ -25,7 +25,7 @@ public class UsersController : ApiController
 
     [HttpGet("search")]
     [ProducesResponseType(typeof(PagedList<AppUserDto>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAll([FromQuery] UserParams userParams)
+    public async Task<IActionResult> Search([FromQuery] UserParams userParams)
     {
         Guid id = User.GetCurrentUserId();
 

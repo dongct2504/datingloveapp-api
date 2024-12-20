@@ -6,7 +6,8 @@ namespace SocialChitChat.Business.Interfaces;
 
 public interface IFollowService
 {
-    Task<Result<PagedList<FollowerDto>>> GetFollowAsync(FollowParams likeParams);
-    Task<bool> IsUserLikedAsync(Guid userSourceId, Guid userLikedId);
-    Task<Result<bool>> UpdateLikeAsync(Guid sourceUserId, Guid likedUserId);
+    Task<Result<List<FollowDto>>> GetAllFollowsAsync(Guid userId, string predicate);
+    Task<Result<PagedList<FollowDto>>> GetFollowsAsync(FollowParams likeParams);
+    Task<bool> IsUserFollowAsync(Guid userSourceId, Guid userLikedId);
+    Task<Result<bool>> UpdateFollowAsync(Guid sourceUserId, Guid likedUserId);
 }
