@@ -155,12 +155,28 @@ public class MessageService : IMessageService
             };
         }
 
+        List<Message> unreadMessages = await _dbContext.Messages
+            .Where(m => m.GroupChatId == conversation.Id && m.DateRead == null && m.SenderId != sender.Id)
+            .ToListAsync();
+
+        if (unreadMessages.Any())
+        {
+            foreach (var message in unreadMessages)
+            {
+                message.DateRead = _dateTimeProvider.LocalVietnamDateTimeNow;
+            }
+
+            await _dbContext.SaveChangesAsync();
+        }
+
         int totalItems = await _dbContext.Messages
             .Where(m => m.GroupChatId == conversation.Id)
             .CountAsync();
 
         List<MessageDto> messageDtos = await _dbContext.Messages
             .AsNoTracking()
+            .Include(m => m.AppUser)
+                .ThenInclude(u => u.Pictures)
             .Where(m => m.GroupChatId == conversation.Id)
             .OrderByDescending(m => m.MessageSent) // get the latest messages first to paging
             .Skip((participantsParams.PageNumber - 1) * participantsParams.PageSize)

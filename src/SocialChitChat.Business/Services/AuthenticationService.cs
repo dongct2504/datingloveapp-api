@@ -68,35 +68,6 @@ public class AuthenticationService : IAuthenticationService
             return Result.Fail(new BadRequestError(ErrorMessageConsts.WrongUserName));
         }
 
-        string[] roleNames = { RoleConstants.User, RoleConstants.Employee, RoleConstants.Admin };
-        foreach (string roleName in roleNames)
-        {
-            if (!await _roleManager.RoleExistsAsync(roleName))
-            {
-                await _roleManager.CreateAsync(new AppRole(roleName));
-            }
-        }
-
-        if (userDto.UserName == "admin" ||
-            userDto.UserName == "admin1" ||
-            userDto.UserName == "admin2" ||
-            userDto.UserName == "admin3" ||
-            userDto.UserName == "admin4")
-        {
-            await _userManager.AddToRoleAsync(user, RoleConstants.Admin);
-        }
-        else
-        {
-            if (string.IsNullOrEmpty(userDto.Role))
-            {
-                await _userManager.AddToRoleAsync(user, RoleConstants.User);
-            }
-            else
-            {
-                await _userManager.AddToRoleAsync(user, userDto.Role);
-            }
-        }
-
         AppUserDto appUserDto = _mapper.Map<AppUserDto>(user);
 
         //string token = _jwtTokenGenerator.GenerateEmailConfirmationToken(user);
@@ -113,7 +84,10 @@ public class AuthenticationService : IAuthenticationService
 
     public async Task<Result<AuthenticationDto>> LoginAsync(LoginAppUserDto userDto)
     {
-        AppUser user = await _userManager.FindByNameAsync(userDto.UserName);
+        AppUser? user = await _userManager.Users
+            .Include(u => u.Pictures)
+            .Where(u => u.UserName == userDto.UserName)
+            .FirstOrDefaultAsync();
         if (user == null)
         {
             _logger.LogWarning($"{nameof(LoginAsync)} - {ErrorMessageConsts.WrongUserName} - {typeof(AuthenticationService)}");

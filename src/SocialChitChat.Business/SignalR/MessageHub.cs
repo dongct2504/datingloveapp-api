@@ -58,9 +58,9 @@ public class MessageHub : Hub
         if (httpContext != null && Context.User != null)
         {
             Guid currentUserId = Context.User.GetCurrentUserId();
-            Guid otherUserId = Guid.Parse(httpContext.Request.Query["otherId"].ToString());
+            Guid recipientId = Guid.Parse(httpContext.Request.Query["recipientId"].ToString());
 
-            string groupName = Utils.GetGroupName(new Guid[] { currentUserId, otherUserId });
+            string groupName = Utils.GetGroupName(new Guid[] { currentUserId, recipientId });
             await _presenceTrackerService.RemoveUserFromGroupAsync(groupName, currentUserId);
         }
 
