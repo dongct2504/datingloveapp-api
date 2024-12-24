@@ -2,7 +2,7 @@
 
 public class PictureDto
 {
-    public Guid PictureId { get; set; }
+    public Guid Id { get; set; }
     public Guid AppUserId { get; set; }
     public Guid? PostId { get; set; }
     public string ImageUrl { get; set; } = null!;
